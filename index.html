@@ -80,7 +80,7 @@
         setError(null);
 
         // Fetch the Excel file from a server-hosted location
-        fetch('https://github.com/KumarKandhasamy/Water-Meter-Reading/tree/main/data/water_meter_readings.xlsx') // Replace with your Excel file's URL or path
+        fetch('https://github.com/KumarKandhasamy/Water-Meter-Reading/tree/main/data/water_meter_readings.xlsx') // Replace with your actual URL
           .then(response => {
             if (!response.ok) throw new Error('Failed to fetch Excel file');
             return response.arrayBuffer();
@@ -184,41 +184,45 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((row, rowIndex) => (
-                    <tr 
-                      key={rowIndex} 
-                      className={
-                        row['S.No'] === 'Total' ? 'bg-green-100 font-bold' :
-                        row['S.No'] === 'Average' ? 'bg-yellow-100 font-bold' :
-                        rowIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                      }
-                    >
-                      {commonColumns.map((key, colIndex) => (
-                        <td 
-                          key={colIndex} 
-                          className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800"
-                        >
-                          {row[key]}
-                        </td>
-                      ))}
-                      {mldColumns.map((key, colIndex) => (
-                        <td 
-                          key={`mld-${colIndex}`} 
-                          className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-blue-50"
-                        >
-                          {row[key]}
-                        </td>
-                      ))}
-                      {litresColumns.map((key, colIndex) => (
-                        <td 
-                          key={`litres-${colIndex}`} 
-                          className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-purple-50"
-                        >
-                          {row[key]}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                  {data.map((row, rowIndex) => {
+                    const sNo = row['S.No'];
+                    if (sNo === '1' || sNo === '2' || sNo === '3') return null; // Skip rows 2, 3, and 4
+                    return (
+                      <tr 
+                        key={rowIndex} 
+                        className={
+                          row['S.No'] === 'Total' ? 'bg-green-100 font-bold' :
+                          row['S.No'] === 'Average' ? 'bg-yellow-100 font-bold' :
+                          rowIndex % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                        }
+                      >
+                        {commonColumns.map((key, colIndex) => (
+                          <td 
+                            key={colIndex} 
+                            className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800"
+                          >
+                            {row[key]}
+                          </td>
+                        ))}
+                        {mldColumns.map((key, colIndex) => (
+                          <td 
+                            key={`mld-${colIndex}`} 
+                            className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-blue-50"
+                          >
+                            {row[key]}
+                          </td>
+                        ))}
+                        {litresColumns.map((key, colIndex) => (
+                          <td 
+                            key={`litres-${colIndex}`} 
+                            className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-purple-50"
+                          >
+                            {row[key]}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
