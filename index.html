@@ -80,7 +80,7 @@
         setError(null);
 
         // Fetch the Excel file from a server-hosted location
-        fetch('https://kumarkandhasamy.github.io/Water-Meter-Reading/data/water_meter_readings.xlsx') // Replace with your Excel file's URL or path
+        fetch('https://github.com/KumarKandhasamy/Water-Meter-Reading/tree/main/data/water_meter_readings.xlsx') // Replace with your Excel file's URL or path
           .then(response => {
             if (!response.ok) throw new Error('Failed to fetch Excel file');
             return response.arrayBuffer();
