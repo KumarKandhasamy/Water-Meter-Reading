@@ -82,7 +82,7 @@
         setLastUpdated('Unknown');
 
         // Fetch the Excel file from GitHub Pages
-        fetch('data/water_meter_readings.xlsx')
+        fetch('https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?export=download&id=1QQz4O991YYtz2qYTIwedefUquNkOl11_')
           .then(response => {
             if (!response.ok) throw new Error('Failed to fetch Excel file');
             // Extract Last-Modified header for last updated date
