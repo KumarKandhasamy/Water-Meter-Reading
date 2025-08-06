@@ -79,8 +79,8 @@
         setLoading(true);
         setError(null);
 
-        // Fetch the Excel file from a server-hosted location
-        fetch('https://raw.githubusercontent.com/KumarKandhasamy/Water-Meter-Reading/main/data/water_meter_readings.xlsx') // Replace with your actual URL
+        // Fetch the Excel file from Google Drive
+        fetch('https://drive.google.com/uc?export=download&id=1QQz4O991YYtz2qYTIwedefUquNkOl11_')
           .then(response => {
             if (!response.ok) throw new Error('Failed to fetch Excel file');
             return response.arrayBuffer();
@@ -236,4 +236,4 @@
     root.render(<App />);
   </script>
 </body>
-</html> 
+</html>
