@@ -14,16 +14,15 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    // Defining the main App component
     function App() {
       const [month, setMonth] = React.useState('Jul');
       const [data, setData] = React.useState([]);
       const [loading, setLoading] = React.useState(true);
       const [error, setError] = React.useState(null);
+      const [lastUpdated, setLastUpdated] = React.useState('Loading...');
 
-      // --- CONFIGURATION (Updated with your GIDs) ---
-      // This ID is taken from your Google Sheet URL.
-      const SPREADSHEET_ID = '1QQz4O991YYtz2qYTIwedefUquNkOl11_';
+      // --- CONFIGURATION (Updated with your new Sheet IDs) ---
+      const SPREADSHEET_ID = '1mN2Pjyc4kjtuCgz3tya5l98kfCM7SdxvnkXvgvPj87o';
 
       // The 'gid' for each sheet tab, now filled in with your values.
       const sheetGids = {
@@ -38,52 +37,54 @@
       const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       // --- END CONFIGURATION ---
 
-
-      // Loading and parsing data when the month changes
       React.useEffect(() => {
         setLoading(true);
         setError(null);
-        setData([]); // Clear previous data on new load
+        setData([]);
 
         const gid = sheetGids[month];
-        
-        // This special URL fetches your sheet as a CSV file
         const fetchUrl = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
 
         fetch(fetchUrl)
           .then(response => {
             if (!response.ok) {
-              throw new Error('Failed to fetch data. Is the Google Sheet shared with "Anyone with the link" and set to "Viewer"?');
+              throw new Error('Failed to fetch data. Please double-check the "Share" and "Publish to web" settings on your Google Sheet.');
             }
-            return response.text(); // Get the response as plain text (CSV)
+            return response.text();
           })
           .then(csvText => {
-            // Use the XLSX library to parse the CSV data
             const workbook = XLSX.read(csvText, { type: 'string' });
             const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            
+            // --- Logic to get "Last Updated" message from cell A1 ---
+            // The XLSX library will create a worksheet object where cell A1 is at key 'A1'
+            const lastUpdatedCell = worksheet['A1'];
+            if (lastUpdatedCell && lastUpdatedCell.v) {
+              setLastUpdated(lastUpdatedCell.v.replace('Last Updated:', '').trim());
+            } else {
+              setLastUpdated('Not specified in sheet');
+            }
+            
             const jsonData = XLSX.utils.sheet_to_json(worksheet, {
               header: ['S.No', 'Date', 'Main Ent (MLD) 138', 'MGP C&EK (MLD) 138', 'MGP (MLD) 138', 'Main Ent (MLD) 238', 'Main Ent (Litters) 138', 'MGP C&EK (Litters) 138', 'MGP (Litters) 138', 'Sump (Litters) 238', 'Main Ent (Litters) 238'],
               defval: '',
             });
-            
-            // The CSV will have the header as the first row in the data. We skip it.
-            // We also skip the next two data rows as per your original logic.
-            const finalData = jsonData.slice(3).filter(row => row['S.No']); // Also filter any totally blank rows
-            
+
+            // Skip header rows and filter out any blank rows
+            const finalData = jsonData.slice(3).filter(row => row['S.No']);
             setData(finalData);
           })
           .catch(err => {
             console.error("Fetch Error:", err);
             setError(err.message);
+            setLastUpdated('Error');
           })
           .finally(() => {
             setLoading(false);
           });
-      }, [month]); // This effect re-runs whenever the 'month' state changes
+      }, [month]);
 
-      const handleMonthChange = (event) => {
-        setMonth(event.target.value);
-      };
+      const handleMonthChange = (event) => setMonth(event.target.value);
 
       const mldColumns = ['Main Ent (MLD) 138', 'MGP C&EK (MLD) 138', 'MGP (MLD) 138', 'Main Ent (MLD) 238'];
       const litresColumns = ['Main Ent (Litters) 138', 'MGP C&EK (Litters) 138', 'MGP (Litters) 138', 'Sump (Litters) 238', 'Main Ent (Litters) 238'];
@@ -95,16 +96,19 @@
             Punjai Thalavaipalayam CWSS 138/238 Water Meter Readings 2025
           </h1>
           
-          <div className="mb-2 flex justify-center items-center">
-            <label htmlFor="month-select" className="mr-1 text-xs font-medium text-gray-700">Select Month:</label>
-            <select
-              id="month-select"
-              value={month}
-              onChange={handleMonthChange}
-              className="border-2 border-blue-300 rounded-lg p-0.5 bg-white text-gray-800 text-xs focus:outline-none focus:border-blue-500"
-            >
-              {months.map(m => (<option key={m} value={m}>{m}</option>))}
-            </select>
+          <div className="mb-2 flex flex-wrap justify-center items-center gap-x-4">
+            <div className="flex items-center">
+              <label htmlFor="month-select" className="mr-1 text-xs font-medium text-gray-700">Select Month:</label>
+              <select
+                id="month-select"
+                value={month}
+                onChange={handleMonthChange}
+                className="border-2 border-blue-300 rounded-lg p-0.5 bg-white text-gray-800 text-xs focus:outline-none focus:border-blue-500"
+              >
+                {months.map(m => (<option key={m} value={m}>{m}</option>))}
+              </select>
+            </div>
+            <span className="text-xs text-gray-600">Last Updated: {lastUpdated}</span>
           </div>
 
           {loading ? (
@@ -116,57 +120,22 @@
               <table className="w-full bg-white border-4 border-gray-400 text-[10px]">
                 <thead>
                   <tr className="text-white sticky top-0 bg-white">
-                    {commonColumns.map((header) => (
-                      <th key={header} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-left font-semibold uppercase tracking-tighter bg-blue-600">
-                        {header}
-                      </th>
-                    ))}
-                    {mldColumns.map((header) => (
-                      <th key={header} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-left font-semibold uppercase tracking-tighter bg-blue-700">
-                        {header}
-                      </th>
-                    ))}
-                    {litresColumns.map((header) => (
-                      <th key={header} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-left font-semibold uppercase tracking-tighter bg-purple-700">
-                        {header}
-                      </th>
-                    ))}
+                    {commonColumns.map((header) => (<th key={header} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-left font-semibold uppercase tracking-tighter bg-blue-600">{header}</th>))}
+                    {mldColumns.map((header) => (<th key={header} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-left font-semibold uppercase tracking-tighter bg-blue-700">{header}</th>))}
+                    {litresColumns.map((header) => (<th key={header} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-left font-semibold uppercase tracking-tighter bg-purple-700">{header}</th>))}
                   </tr>
                 </thead>
                 <tbody>
                   {data.length > 0 ? (
                     data.map((row, rowIndex) => (
-                      <tr 
-                        key={rowIndex} 
-                        className={
-                          row['S.No'] === 'Total' ? 'bg-green-100 font-bold' :
-                          row['S.No'] === 'Average' ? 'bg-yellow-100 font-bold' :
-                          (rowIndex + 1) % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                        }
-                      >
-                        {commonColumns.map((key) => (
-                          <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800">
-                            {row[key]}
-                          </td>
-                        ))}
-                        {mldColumns.map((key) => (
-                          <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-blue-50">
-                            {row[key]}
-                          </td>
-                        ))}
-                        {litresColumns.map((key) => (
-                          <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-purple-50">
-                            {row[key]}
-                          </td>
-                        ))}
+                      <tr key={rowIndex} className={row['S.No'] === 'Total' ? 'bg-green-100 font-bold' : row['S.No'] === 'Average' ? 'bg-yellow-100 font-bold' : (rowIndex + 1) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        {commonColumns.map((key) => (<td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800">{row[key]}</td>))}
+                        {mldColumns.map((key) => (<td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-blue-50">{row[key]}</td>))}
+                        {litresColumns.map((key) => (<td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-purple-50">{row[key]}</td>))}
                       </tr>
                     ))
                   ) : (
-                    <tr>
-                      <td colSpan={commonColumns.length + mldColumns.length + litresColumns.length} className="text-center p-4 text-gray-500">
-                        No data found for this month.
-                      </td>
-                    </tr>
+                    <tr><td colSpan={commonColumns.length + mldColumns.length + litresColumns.length} className="text-center p-4 text-gray-500">No data found for this month.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -175,8 +144,6 @@
         </div>
       );
     }
-
-    // Rendering the App component
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
