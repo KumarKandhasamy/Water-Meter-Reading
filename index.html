@@ -14,99 +14,81 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    // This top script block is unused by the React app and can be removed, but is left for context.
-    var gk_isXlsx = false;
-    var gk_xlsxFileLookup = {};
-    var gk_fileData = {};
-    function filledCell(cell) {
-      return cell !== '' && cell != null;
-    }
-    // ... other functions from the original script
-
     // Defining the main App component
     function App() {
       const [month, setMonth] = React.useState('Jul');
       const [data, setData] = React.useState([]);
       const [loading, setLoading] = React.useState(true);
       const [error, setError] = React.useState(null);
-      
-      // Defining available months corresponding to Excel sheets
-      const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-      // Function to convert Excel serial date to DD-MMM-YYYY format
-      const excelSerialToDate = (serial) => {
-        if (!serial || isNaN(serial)) return '';
-        const utc_days = Math.floor(serial - 25569);
-        const date = new Date(utc_days * 86400 * 1000);
-        const day = date.getUTCDate();
-        const month = date.toLocaleString('en-US', { month: 'short' });
-        const year = date.getUTCFullYear();
-        return `${day}-${month}-${year}`;
+      // --- CONFIGURATION (Updated with your GIDs) ---
+      // This ID is taken from your Google Sheet URL.
+      const SPREADSHEET_ID = '1QQz4O991YYtz2qYTIwedefUquNkOl11_';
+
+      // The 'gid' for each sheet tab, now filled in with your values.
+      const sheetGids = {
+        'Jul': '2038204618', 
+        'Aug': '812809410', 
+        'Sep': '555648873',
+        'Oct': '521072477',
+        'Nov': '1962131756',
+        'Dec': '397538262'
       };
 
-      // Loading and parsing Excel data when month changes
+      const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      // --- END CONFIGURATION ---
+
+
+      // Loading and parsing data when the month changes
       React.useEffect(() => {
         setLoading(true);
         setError(null);
+        setData([]); // Clear previous data on new load
 
-        // Fetch the Excel file directly from your repository.
-        // Ensure the filename matches exactly what you uploaded to GitHub.
-        fetch('water_meter_readings.xlsx')
+        const gid = sheetGids[month];
+        
+        // This special URL fetches your sheet as a CSV file
+        const fetchUrl = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
+
+        fetch(fetchUrl)
           .then(response => {
             if (!response.ok) {
-              throw new Error('Could not load the data file. Please check the filename.');
+              throw new Error('Failed to fetch data. Is the Google Sheet shared with "Anyone with the link" and set to "Viewer"?');
             }
-            return response.arrayBuffer();
+            return response.text(); // Get the response as plain text (CSV)
           })
-          .then(fileData => {
-            const workbook = XLSX.read(fileData, { type: 'array' });
-            const sheetName = month; // Use selected month as sheet name
-            const worksheet = workbook.Sheets[sheetName];
-            
-            if (!worksheet) {
-              setData([]); // Clear any old data
-              throw new Error(`Data for "${sheetName}" not found in the Excel file.`);
-            }
-
-            // Convert sheet to JSON
+          .then(csvText => {
+            // Use the XLSX library to parse the CSV data
+            const workbook = XLSX.read(csvText, { type: 'string' });
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(worksheet, {
               header: ['S.No', 'Date', 'Main Ent (MLD) 138', 'MGP C&EK (MLD) 138', 'MGP (MLD) 138', 'Main Ent (MLD) 238', 'Main Ent (Litters) 138', 'MGP C&EK (Litters) 138', 'MGP (Litters) 138', 'Sump (Litters) 238', 'Main Ent (Litters) 238'],
               defval: '',
-              raw: false,
-              dateNF: 'dd-mmm-yyyy'
             });
-
-            // Transform Date column from Excel serial to DD-MMM-YYYY
-            const transformedData = jsonData.map(row => ({
-              ...row,
-              Date: row.Date && !isNaN(row.Date) ? excelSerialToDate(parseInt(row.Date, 10)) : row.Date
-            }));
-
-            // Your logic requires skipping the first 3 rows of data.
-            // We do this here to keep the rendering logic clean.
-            const finalData = transformedData.slice(3);
-
+            
+            // The CSV will have the header as the first row in the data. We skip it.
+            // We also skip the next two data rows as per your original logic.
+            const finalData = jsonData.slice(3).filter(row => row['S.No']); // Also filter any totally blank rows
+            
             setData(finalData);
-            setLoading(false);
           })
           .catch(err => {
-            console.error(err);
-            setError(err.message); // Display a helpful error message
+            console.error("Fetch Error:", err);
+            setError(err.message);
+          })
+          .finally(() => {
             setLoading(false);
           });
       }, [month]); // This effect re-runs whenever the 'month' state changes
 
-      // Handling month selection change
       const handleMonthChange = (event) => {
         setMonth(event.target.value);
       };
 
-      // Defining columns for MLD and Litres sections
       const mldColumns = ['Main Ent (MLD) 138', 'MGP C&EK (MLD) 138', 'MGP (MLD) 138', 'Main Ent (MLD) 238'];
       const litresColumns = ['Main Ent (Litters) 138', 'MGP C&EK (Litters) 138', 'MGP (Litters) 138', 'Sump (Litters) 238', 'Main Ent (Litters) 238'];
       const commonColumns = ['S.No', 'Date'];
 
-      // Rendering the component
       return (
         <div className="container mx-auto p-1">
           <h1 className="text-lg font-bold mb-2 text-center text-blue-800">
@@ -121,16 +103,14 @@
               onChange={handleMonthChange}
               className="border-2 border-blue-300 rounded-lg p-0.5 bg-white text-gray-800 text-xs focus:outline-none focus:border-blue-500"
             >
-              {months.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
+              {months.map(m => (<option key={m} value={m}>{m}</option>))}
             </select>
           </div>
 
           {loading ? (
-            <div className="text-center text-gray-600 text-xs">Loading...</div>
+            <div className="text-center text-gray-600 text-xs p-4">Loading Data...</div>
           ) : error ? (
-            <div className="text-center text-red-600 text-xs p-4 bg-red-100 rounded-lg">{error}</div>
+            <div className="text-center text-red-600 text-xs p-4 bg-red-100 rounded-lg border border-red-300">{error}</div>
           ) : (
             <div className="shadow-lg rounded-lg overflow-x-auto">
               <table className="w-full bg-white border-4 border-gray-400 text-[10px]">
@@ -154,32 +134,40 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {data.map((row, rowIndex) => (
-                    <tr 
-                      key={rowIndex} 
-                      className={
-                        row['S.No'] === 'Total' ? 'bg-green-100 font-bold' :
-                        row['S.No'] === 'Average' ? 'bg-yellow-100 font-bold' :
-                        (rowIndex + 1) % 2 === 0 ? 'bg-gray-50' : 'bg-white'
-                      }
-                    >
-                      {commonColumns.map((key) => (
-                        <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800">
-                          {row[key]}
-                        </td>
-                      ))}
-                      {mldColumns.map((key) => (
-                        <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-blue-50">
-                          {row[key]}
-                        </td>
-                      ))}
-                      {litresColumns.map((key) => (
-                        <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-purple-50">
-                          {row[key]}
-                        </td>
-                      ))}
+                  {data.length > 0 ? (
+                    data.map((row, rowIndex) => (
+                      <tr 
+                        key={rowIndex} 
+                        className={
+                          row['S.No'] === 'Total' ? 'bg-green-100 font-bold' :
+                          row['S.No'] === 'Average' ? 'bg-yellow-100 font-bold' :
+                          (rowIndex + 1) % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                        }
+                      >
+                        {commonColumns.map((key) => (
+                          <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800">
+                            {row[key]}
+                          </td>
+                        ))}
+                        {mldColumns.map((key) => (
+                          <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-blue-50">
+                            {row[key]}
+                          </td>
+                        ))}
+                        {litresColumns.map((key) => (
+                          <td key={key} className="px-1 py-0.5 border-b-4 border-r-4 border-gray-400 text-gray-800 bg-purple-50">
+                            {row[key]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={commonColumns.length + mldColumns.length + litresColumns.length} className="text-center p-4 text-gray-500">
+                        No data found for this month.
+                      </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
