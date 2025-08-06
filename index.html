@@ -1,139 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Water Meter Readings 2025</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Monthly Data Viewer</title>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    select {
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+      padding: 6px;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    #lastUpdated {
+      margin-top: 10px;
+      font-style: italic;
+      color: gray;
+    }
+  </style>
 </head>
-<body class="bg-blue-50 font-sans">
-  <div id="root"></div>
+<body>
 
-  <script type="text/babel">
-    function App() {
-      const [month, setMonth] = React.useState('Jul');
-      const [data, setData] = React.useState([]);
-      const [loading, setLoading] = React.useState(true);
-      const [error, setError] = React.useState(null);
-      const [lastUpdated, setLastUpdated] = React.useState('Loading...');
+  <h2>Monthly Data Viewer</h2>
 
-      // ✅ Published spreadsheet ID (NOT the one from edit link)
-      const SPREADSHEET_ID = '2PACX-1vSZgyKDVKi31ku5JZ3sHK9HO0ncbIAJkTOzyFZgXw7KVZ9bi7oMqbgUkILKjF1zaVP4GcchfUHFTTVs';
+  <label for="monthSelect">Select Month:</label>
+  <select id="monthSelect"></select>
 
-      const sheetGids = {
-        'Jul': '2038204618', 
-        'Aug': '812809410', 
-        'Sep': '555648873',
-        'Oct': '521072477',
-        'Nov': '1962131756',
-        'Dec': '397538262'
-      };
+  <div id="lastUpdated"></div>
+  <br>
+  <table id="dataTable"></table>
 
-      const months = Object.keys(sheetGids);
+  <script>
+    const SHEET_ID = "2PACX-1vSZgyKDVKi31ku5JZ3sHK9HO0ncbIAJkTOzyFZgXw7KVZ9bi7oMqbgUkILKjF1zaVP4GcchfUHFTTVs";
+    const SHEET_URL_PREFIX = "https://docs.google.com/spreadsheets/d/e/";
+    const SHEET_META_API = `https://docs.google.com/spreadsheets/d/${SHEET_ID.split('-')[0]}/gviz/tq`;
 
-      React.useEffect(() => {
-        setLoading(true);
-        setError(null);
-        setData([]);
+    // List your sheet names (as per month)
+    const sheetNames = ["January", "February", "March", "April", "May", "June", "July", "August"];
 
-        const gid = sheetGids[month];
-        const fetchUrl = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
+    const monthSelect = document.getElementById('monthSelect');
+    const table = document.getElementById('dataTable');
+    const lastUpdated = document.getElementById('lastUpdated');
 
-        fetch(fetchUrl)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Failed to fetch data. Please ensure "Publish to web" is enabled for each sheet.');
-            }
-            return response.text();
-          })
-          .then(csvText => {
-            const workbook = XLSX.read(csvText, { type: 'string' });
-            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    sheetNames.forEach(sheet => {
+      const opt = document.createElement("option");
+      opt.value = sheet;
+      opt.textContent = sheet;
+      monthSelect.appendChild(opt);
+    });
 
-            const lastUpdatedCell = worksheet['A1'];
-            setLastUpdated(lastUpdatedCell?.v?.replace('Last Updated:', '').trim() || 'Not specified');
+    monthSelect.addEventListener("change", () => {
+      fetchCSV(monthSelect.value);
+    });
 
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-              header: ['S.No', 'Date', 'Main Ent (MLD) 138', 'MGP C&EK (MLD) 138', 'MGP (MLD) 138', 'Main Ent (MLD) 238', 'Main Ent (Litters) 138', 'MGP C&EK (Litters) 138', 'MGP (Litters) 138', 'Sump (Litters) 238', 'Main Ent (Litters) 238'],
-              defval: '',
-            });
+    async function fetchCSV(sheetName) {
+      const url = `${SHEET_URL_PREFIX}${SHEET_ID}/pub?output=csv&sheet=${sheetName}`;
+      const response = await fetch(url);
+      const csvText = await response.text();
+      const rows = csvText.trim().split('\n').map(row => row.split(','));
 
-            const finalData = jsonData.slice(3).filter(row => row['S.No']);
-            setData(finalData);
-          })
-          .catch(err => {
-            console.error("Fetch Error:", err);
-            setError(err.message);
-            setLastUpdated('Error');
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }, [month]);
+      // Clear table
+      table.innerHTML = "";
 
-      const handleMonthChange = (event) => setMonth(event.target.value);
+      // Populate table
+      rows.forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        row.forEach(cell => {
+          const td = document.createElement(rowIndex === 0 ? "th" : "td");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
 
-      const mldColumns = ['Main Ent (MLD) 138', 'MGP C&EK (MLD) 138', 'MGP (MLD) 138', 'Main Ent (MLD) 238'];
-      const litresColumns = ['Main Ent (Litters) 138', 'MGP C&EK (Litters) 138', 'MGP (Litters) 138', 'Sump (Litters) 238', 'Main Ent (Litters) 238'];
-      const commonColumns = ['S.No', 'Date'];
-
-      return (
-        <div className="container mx-auto p-2">
-          <h1 className="text-lg font-bold mb-2 text-center text-blue-800">
-            Punjai Thalavaipalayam CWSS 138/238 Water Meter Readings 2025
-          </h1>
-
-          <div className="mb-3 flex flex-wrap justify-center items-center gap-3">
-            <label htmlFor="month-select" className="text-xs font-medium text-gray-700">Select Month:</label>
-            <select
-              id="month-select"
-              value={month}
-              onChange={handleMonthChange}
-              className="border border-blue-300 rounded-lg p-1 text-xs bg-white"
-            >
-              {months.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-            <span className="text-xs text-gray-600">Last Updated: {lastUpdated}</span>
-          </div>
-
-          {loading ? (
-            <div className="text-center text-gray-600 text-xs p-4">Loading data...</div>
-          ) : error ? (
-            <div className="text-center text-red-600 text-xs p-4 bg-red-100 border border-red-300 rounded-lg">{error}</div>
-          ) : (
-            <div className="overflow-x-auto shadow-md rounded-lg">
-              <table className="min-w-full bg-white text-[10px] border-2 border-gray-300">
-                <thead>
-                  <tr>
-                    {[...commonColumns, ...mldColumns, ...litresColumns].map(header => (
-                      <th key={header} className="border px-2 py-1 bg-blue-600 text-white text-left">{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((row, idx) => (
-                    <tr key={idx} className={(idx + 1) % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      {[...commonColumns, ...mldColumns, ...litresColumns].map(key => (
-                        <td key={key} className="border px-2 py-1">{row[key]}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      );
+      // Update last updated text
+      updateLastModified(sheetName);
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    async function updateLastModified(sheetName) {
+      try {
+        const res = await fetch(SHEET_META_API);
+        const text = await res.text();
+        const match = text.match(/"lastModifiedTime":"(.*?)"/);
+        if (match) {
+          const date = new Date(match[1]);
+          lastUpdated.textContent = `Last updated: ${date.toLocaleString()}`;
+        } else {
+          lastUpdated.textContent = "";
+        }
+      } catch (e) {
+        lastUpdated.textContent = "";
+      }
+    }
+
+    // Initial load
+    monthSelect.value = sheetNames[0];
+    fetchCSV(sheetNames[0]);
   </script>
+
 </body>
 </html>
