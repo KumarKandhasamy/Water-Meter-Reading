@@ -42,7 +42,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</title>
+  <title>Panjayath CWSS138/238 - Water Meter Readings 2025</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -62,43 +62,39 @@
     }
     table {
       width: 100%;
-      min-width: 800px; /* Ensure minimum width to prevent collapse */
       border-collapse: collapse;
       font-size: 12px;
       background: white;
       margin-top: 10px;
-      table-layout: fixed; /* Fixed layout to control column widths */
     }
     th, td {
       border: 1px solid #ccc;
       padding: 6px;
       text-align: left;
-      word-wrap: break-word; /* Prevent text overflow */
-      max-width: 150px; /* Limit cell width */
     }
     th {
-      background-color: #2563eb !important;
+      background-color: #2563eb;
       color: white;
       position: sticky;
       top: 0;
       z-index: 1;
     }
     .row-even {
-      background-color: #f9fafb !important;
+      background-color: #f9fafb;
     }
     .total-row {
-      background-color: #a3e635 !important; /* Green for Total */
+      background-color: #a3e635; /* Green for Total */
       font-weight: bold;
     }
     .average-row {
-      background-color: #fde047 !important; /* Yellow for Average */
+      background-color: #fde047; /* Yellow for Average */
       font-weight: bold;
     }
     .mld-group {
-      background-color: #93c5fd !important; /* Light blue for MLD */
+      background-color: #93c5fd; /* Light blue for MLD columns */
     }
     .litres-group {
-      background-color: #d8b4fe !important; /* Light purple for Litres */
+      background-color: #d8b4fe; /* Light purple for Litres columns */
     }
     #lastUpdated {
       font-size: 12px;
@@ -106,14 +102,11 @@
       margin: 10px 0;
       text-align: center;
     }
-    .container {
-      overflow-x: auto; /* Ensure horizontal scroll if needed */
-    }
   </style>
 </head>
 <body>
 
-  <h2>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</h2>
+  <h2>Panjayath CWSS138/238 - Water Meter Readings 2025</h2>
 
   <div style="text-align: center;">
     <label for="monthSelect">Select Month: </label>
@@ -129,7 +122,7 @@
   </div>
 
   <div id="lastUpdated">Last updated: Loading...</div>
-  <div class="container">
+  <div style="overflow-x: auto;">
     <table id="dataTable"></table>
   </div>
 
@@ -167,20 +160,19 @@
           // Clear previous table
           table.innerHTML = "";
 
-          // Add header with dynamic color assignment
+          // Add header
           const headerRow = document.createElement("tr");
-          const headers = rows[0];
-          console.log("Headers:", headers); // Debug: Log headers to verify structure
-          headers.forEach((header, idx) => {
+          rows[0].forEach((cell, idx) => {
             const th = document.createElement("th");
-            th.textContent = header;
-            if (header.includes("MLD")) th.classList.add("mld-group");
-            else if (header.includes("Litters")) th.classList.add("litres-group");
+            th.textContent = cell;
+            // Apply color groups to headers
+            if (idx >= 2 && idx <= 5) th.classList.add("mld-group");
+            else if (idx >= 6 && idx <= 10) th.classList.add("litres-group");
             headerRow.appendChild(th);
           });
           table.appendChild(headerRow);
 
-          // Track merged cells (e.g., based on S.No)
+          // Track merged cells (e.g., based on S.No or Date)
           let lastSNo = null;
           let rowspanCount = 1;
 
@@ -195,9 +187,9 @@
               const td = document.createElement("td");
               td.textContent = cell;
 
-              // Apply color groups based on header
-              if (headers[colIdx] && headers[colIdx].includes("MLD")) td.classList.add("mld-group");
-              else if (headers[colIdx] && headers[colIdx].includes("Litters")) td.classList.add("litres-group");
+              // Apply color groups to data cells
+              if (colIdx >= 2 && colIdx <= 5) td.classList.add("mld-group");
+              else if (colIdx >= 6 && colIdx <= 10) td.classList.add("litres-group");
 
               // Simulate merging for S.No if consecutive values are the same
               if (colIdx === 0 && cell === lastSNo && lastSNo !== null) {
@@ -216,19 +208,13 @@
           });
         })
         .catch(err => {
-          console.error("Fetch Error:", err);
+          console.error(err);
           table.innerHTML = "<tr><td colspan='100%'>Failed to load data</td></tr>";
         });
     }
 
     function fetchLastUpdated() {
-      // Replace with your Google API key
-      const API_KEY = "AIzaSyCuqhmhNPQjcYvDAxlgB-3fjy8h6CRvx9M"; // Obtain from Google Cloud Console
-      if (!API_KEY || API_KEY === "AIzaSyCuqhmhNPQjcYvDAxlgB-3fjy8h6CRvx9M") {
-        lastUpdatedDiv.textContent = "Last updated: Unknown (Please set API key)";
-        return;
-      }
-      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID.split("-")[0]}?fields=properties(modifiedTime)&key=${API_KEY}`)
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID.split("-")[0]}?fields=properties(modifiedTime)&key=AIzaSyD1iZ8v0Xb2q9Z2mH6n3kL2vQ5y7z9kL2v`) // Replace with your API key
         .then(res => res.json())
         .then(data => {
           if (data.properties && data.properties.modifiedTime) {
@@ -239,9 +225,29 @@
           }
         })
         .catch(err => {
-          console.error("API Error:", err);
-          // Fallback to manual check or gviz
-          lastUpdatedDiv.textContent = "Last updated: Unknown (API key required)";
+          console.error("Error fetching last updated:", err);
+          // Fallback to gviz if API fails
+          fetch(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID.split("-")[0]}/gviz/tq`)
+            .then(res => res.text())
+            .then(text => {
+              try {
+                const jsonStart = text.indexOf("{");
+                const jsonEnd = text.lastIndexOf("}");
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                  const data = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+                  const updated = data.table.rows[0].c[0]?.v;
+                  if (updated) {
+                    const date = new Date(updated);
+                    lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
+                  } else {
+                    lastUpdatedDiv.textContent = "Last updated: Unknown";
+                  }
+                }
+              } catch (e) {
+                console.error("Error parsing gviz:", e);
+                lastUpdatedDiv.textContent = "Last updated: Unknown";
+              }
+            });
         });
     }
 
