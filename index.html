@@ -167,18 +167,15 @@
           // Clear previous table
           table.innerHTML = "";
 
-          // Clean headers and remove empty columns
-          const headers = rows[0].filter(header => header !== "");
-          const validCols = headers.map((_, idx) => idx); // Indices of non-empty columns
-          console.log("Cleaned Headers:", headers); // Debug cleaned headers
-
           // Add header with dynamic color assignment
           const headerRow = document.createElement("tr");
+          const headers = rows[0];
+          console.log("Headers:", headers); // Debug: Log headers
           headers.forEach((header, idx) => {
             const th = document.createElement("th");
-            th.textContent = header || `Column ${idx + 1}`;
-            if (header.includes("MLD")) th.classList.add("mld-group");
-            else if (header.includes("Litters")) th.classList.add("litres-group");
+            th.textContent = header || `Column ${idx + 1}`; // Handle empty headers
+            if (header && header.includes("MLD")) th.classList.add("mld-group");
+            else if (header && header.includes("Litters")) th.classList.add("litres-group");
             headerRow.appendChild(th);
           });
           table.appendChild(headerRow);
@@ -187,19 +184,17 @@
           let lastSNo = null;
           let rowspanCount = 1;
 
-          // Add data rows with merging and color coding, filtering extra columns
+          // Add data rows with merging and color coding
           rows.slice(1).forEach((row, idx) => {
-            console.log("Row", idx + 1, "Raw:", row); // Debug raw row
-            const cleanedRow = validCols.map(i => row[i] || ""); // Only keep valid columns
-            console.log("Row", idx + 1, "Cleaned:", cleanedRow); // Debug cleaned row
+            console.log("Row", idx + 1, ":", row); // Debug: Log each row
             const tr = document.createElement("tr");
             tr.className = idx % 2 === 0 ? "row-even" : "";
-            if (cleanedRow[0] === "Total") tr.className = "total-row";
-            else if (cleanedRow[0] === "Average") tr.className = "average-row";
+            if (row[0] === "Total") tr.className = "total-row";
+            else if (row[0] === "Average") tr.className = "average-row";
 
-            cleanedRow.forEach((cell, colIdx) => {
+            row.forEach((cell, colIdx) => {
               const td = document.createElement("td");
-              td.textContent = cell;
+              td.textContent = cell || ""; // Handle empty cells
 
               // Apply color groups based on header
               if (headers[colIdx] && headers[colIdx].includes("MLD")) td.classList.add("mld-group");
@@ -229,7 +224,7 @@
 
     function fetchLastUpdated() {
       const API_KEY = "AIzaSyCuqhmhNPQjcYvDAxlgB-3fjy8h6CRvx9M"; // Your provided API key
-      const spreadsheetId = SPREADSHEET_ID.replace(/-.*$/, ""); // Extract base ID more reliably
+      const spreadsheetId = SPREADSHEET_ID.split("-")[0]; // Extract base ID
       console.log("Fetching last updated for ID:", spreadsheetId); // Debug ID
       fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=properties(modifiedTime)&key=${API_KEY}`)
         .then(res => {
