@@ -88,6 +88,33 @@
     const table = document.getElementById("dataTable");
     const lastUpdatedDiv = document.getElementById("lastUpdated");
 
+  function parseCSV(csvText) {
+    const lines = csvText.trim().split(/\r?\n/);
+    return lines.map(line => {
+      const cells = [];
+      let current = '', inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"' && inQuotes && nextChar === '"') {
+          current += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          cells.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+
+      cells.push(current.trim());
+      return cells;
+    });
+  }
     function fetchSheetData(month) {
       const gid = GID_MAP[month];
       const url = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
@@ -97,10 +124,8 @@
           if (!response.ok) throw new Error("Failed to fetch data");
           return response.text();
         })
-        .then(csv => {
-          const rows = csv.trim().split("\\n").map(row =>
-            row.split(",").map(cell => cell.trim())
-          );
+      .then(csv => {
+        const rows = parseCSV(csv);
 
           table.innerHTML = "";
 
@@ -110,7 +135,9 @@
               const cellEl = document.createElement(idx === 0 ? "th" : "td");
               cellEl.textContent = cell;
 
-              if (cell.toLowerCase().includes("total")) {
+            // Highlight "Total" and "Average" rows
+            const label = cell.toLowerCase();
+            if (label === "total" || label === "average") {
                 cellEl.style.backgroundColor = "#fde68a";
                 cellEl.style.fontWeight = "bold";
               }
@@ -143,10 +170,12 @@
         });
     }
 
+  // Event listener
     monthSelect.addEventListener("change", () => {
       fetchSheetData(monthSelect.value);
     });
 
+  // Initial load
     fetchSheetData(monthSelect.value);
     fetchLastUpdated();
   </script>
