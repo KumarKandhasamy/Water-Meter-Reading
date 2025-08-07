@@ -30,6 +30,7 @@
       border: 1px solid #ccc;
       padding: 6px;
       text-align: left;
+      white-space: pre-wrap;
     }
     th {
       background-color: #2563eb;
@@ -97,19 +98,23 @@
           return response.text();
         })
         .then(csv => {
-          const rows = csv.trim().split("\n").map(row =>
+          const rows = csv.trim().split("\\n").map(row =>
             row.split(",").map(cell => cell.trim())
           );
 
-          // Clear previous table
           table.innerHTML = "";
 
-          // Add rows to table
           rows.forEach((row, idx) => {
             const tr = document.createElement("tr");
             row.forEach(cell => {
               const cellEl = document.createElement(idx === 0 ? "th" : "td");
               cellEl.textContent = cell;
+
+              if (cell.toLowerCase().includes("total")) {
+                cellEl.style.backgroundColor = "#fde68a";
+                cellEl.style.fontWeight = "bold";
+              }
+
               tr.appendChild(cellEl);
             });
             table.appendChild(tr);
@@ -130,21 +135,18 @@
             const date = new Date(match[1]);
             lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString()}`;
           } else {
-            lastUpdatedDiv.textContent = "";
+            lastUpdatedDiv.textContent = "Last updated: Unknown";
           }
         })
         .catch(() => {
-          lastUpdatedDiv.textContent = "";
+          lastUpdatedDiv.textContent = "Last updated: Unknown";
         });
     }
 
-    // Event listener for dropdown
     monthSelect.addEventListener("change", () => {
-      const selectedMonth = monthSelect.value;
-      fetchSheetData(selectedMonth);
+      fetchSheetData(monthSelect.value);
     });
 
-    // Initial load
     fetchSheetData(monthSelect.value);
     fetchLastUpdated();
   </script>
