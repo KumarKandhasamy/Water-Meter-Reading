@@ -158,9 +158,41 @@
     const monthSelect = document.getElementById("monthSelect");
     const table = document.getElementById("dataTable");
     const lastUpdatedDiv = document.getElementById("lastUpdated");
+    
+    // Set a cache expiration time of 1 hour (in milliseconds)
+    const CACHE_EXPIRATION_TIME = 60 * 60 * 1000; 
 
+    // Function to update the last updated text, indicating if it's from cache or network
+    function updateLastUpdatedText(timestamp) {
+        const now = new Date();
+        const cachedDate = new Date(timestamp);
+        const diff = (now.getTime() - cachedDate.getTime()) / 1000 / 60; // Difference in minutes
+        
+        let lastUpdatedMessage;
+        if (diff < 1) {
+            lastUpdatedMessage = `Last updated: Just now`;
+        } else {
+            const formattedDate = cachedDate.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            lastUpdatedMessage = `Last updated: ${formattedDate} (Cached)`;
+        }
+        lastUpdatedDiv.textContent = lastUpdatedMessage;
+    }
+    
     // This function fetches and displays the data from the Google Apps Script
     async function fetchAndDisplayData(month) {
+      const cacheKey = `data-${month}`;
+      const cachedItem = JSON.parse(localStorage.getItem(cacheKey));
+      const now = new Date().getTime();
+
+      // Check if cached data exists and is not expired
+      if (cachedItem && (now - cachedItem.timestamp < CACHE_EXPIRATION_TIME)) {
+          console.log(`Loading data for ${month} from cache.`);
+          displayTable(cachedItem.data);
+          updateLastUpdatedText(cachedItem.timestamp);
+          return;
+      }
+      
+      // If no cache or cache is expired, fetch from network
       const gid = GID_MAP[month];
       const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
 
@@ -171,20 +203,48 @@
         console.log("Attempting to fetch data from:", url);
         const response = await fetch(url);
         
-        // A NetworkError often indicates a CORS issue or incorrect deployment settings.
-        // It's not a status error (like 404), but a failure to connect.
         if (!response.ok) {
           const errorMsg = `Failed to fetch data with status code: ${response.status}. This may mean your Google Apps Script is not correctly deployed.`;
           throw new Error(errorMsg);
         }
         
-        const data = await response.json(); // Data is already JSON thanks to Apps Script
+        const data = await response.json();
 
         if (!data || data.length < 1) {
           table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>No data available for this month.</td></tr>";
           return;
         }
+        
+        // Cache the new data with a timestamp
+        localStorage.setItem(cacheKey, JSON.stringify({ data: data, timestamp: now }));
+        
+        displayTable(data);
+        updateLastUpdatedText(now);
 
+      } catch (error) {
+        console.error("Error fetching or displaying data:", error);
+        // Display a more helpful error message for the user
+        const errorMessage = `
+          <div style='text-align:left; padding: 20px; background-color: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; color: #b91c1c; font-size: 14px;'>
+            <p><strong>Failed to load data. This is likely due to an issue with your Google Apps Script deployment.</strong></p>
+            <p>Please follow these steps to fix the issue:</p>
+            <ol>
+              <li>Go to your Google Apps Script project for the spreadsheet.</li>
+              <li>Click on "Deploy" > "Manage deployments" or "New deployment".</li>
+              <li>Ensure the deployment is a "Web app".</li>
+              <li>Under "Who has access", select "Anyone". This is a critical step.</li>
+              <li>Click "Deploy" (or "Done" to save changes) and get the new URL if it changed.</li>
+              <li>Make sure the URL in this script matches the Web App URL exactly: <code>${APPS_SCRIPT_WEB_APP_URL}</code></li>
+            </ol>
+            <p>Original error: ${error.message}</p>
+          </div>
+        `;
+        table.innerHTML = `<tr><td colspan='100%'>${errorMessage}</td></tr>`;
+      }
+    }
+    
+    // Function to render the table from data
+    function displayTable(data) {
         // The first row of data is the header
         const headers = data[0];
         const rowsToDisplay = data.slice(1); // Remaining rows are data
@@ -230,44 +290,53 @@
           });
           table.appendChild(tr);
         });
-
-      } catch (error) {
-        console.error("Error fetching or displaying data:", error);
-        // Display a more helpful error message for the user
-        const errorMessage = `
-          <div style='text-align:left; padding: 20px; background-color: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; color: #b91c1c; font-size: 14px;'>
-            <p><strong>Failed to load data. This is likely due to an issue with your Google Apps Script deployment.</strong></p>
-            <p>Please follow these steps to fix the issue:</p>
-            <ol>
-              <li>Go to your Google Apps Script project for the spreadsheet.</li>
-              <li>Click on "Deploy" > "Manage deployments" or "New deployment".</li>
-              <li>Ensure the deployment is a "Web app".</li>
-              <li>Under "Who has access", select "Anyone". This is a critical step.</li>
-              <li>Click "Deploy" (or "Done" to save changes) and get the new URL if it changed.</li>
-              <li>Make sure the URL in this script matches the Web App URL exactly: <code>${APPS_SCRIPT_WEB_APP_URL}</code></li>
-            </ol>
-            <p>Original error: ${error.message}</p>
-          </div>
-        `;
-        table.innerHTML = `<tr><td colspan='100%'>${errorMessage}</td></tr>`;
-      }
     }
+    
+    // Function to preload data for other months in the background
+    async function preloadData(currentMonth) {
+      console.log("Starting to preload data for other months...");
+      const monthsToPreload = Object.keys(GID_MAP).filter(month => month !== currentMonth);
+      const now = new Date().getTime();
 
-    function updateLastUpdatedToCurrentTime() {
-      const now = new Date();
-      lastUpdatedDiv.textContent = `Last updated: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
+      for (const month of monthsToPreload) {
+          const cacheKey = `data-${month}`;
+          const cachedItem = JSON.parse(localStorage.getItem(cacheKey));
+          
+          // Only preload if data is not already cached or is expired
+          if (!cachedItem || (now - cachedItem.timestamp >= CACHE_EXPIRATION_TIME)) {
+              const gid = GID_MAP[month];
+              const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
+              try {
+                  const response = await fetch(url);
+                  if (response.ok) {
+                      const data = await response.json();
+                      localStorage.setItem(cacheKey, JSON.stringify({ data: data, timestamp: new Date().getTime() }));
+                      console.log(`Preloaded and cached data for ${month}.`);
+                  }
+              } catch (error) {
+                  console.warn(`Failed to preload data for ${month}.`, error);
+              }
+          } else {
+              console.log(`Data for ${month} is already fresh in cache, skipping preload.`);
+          }
+      }
+      console.log("Preloading complete.");
     }
 
     // Event listener for dropdown
     monthSelect.addEventListener("change", () => {
       const selectedMonth = monthSelect.value;
       fetchAndDisplayData(selectedMonth);
-      updateLastUpdatedToCurrentTime();
     });
 
-    // Initial load
-    fetchAndDisplayData(monthSelect.value);
-    updateLastUpdatedToCurrentTime();
+    // Initial load when the page is loaded
+    document.addEventListener("DOMContentLoaded", () => {
+        const initialMonth = monthSelect.value;
+        fetchAndDisplayData(initialMonth).then(() => {
+            // Once the initial data is loaded and displayed, start preloading
+            preloadData(initialMonth);
+        });
+    });
   </script>
 
 </body>
