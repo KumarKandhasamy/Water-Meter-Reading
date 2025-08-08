@@ -1,49 +1,53 @@
-<script type="text/javascript"> 
+<script type="text/javascript">
         var gk_isXlsx = false;
         var gk_xlsxFileLookup = {};
         var gk_fileData = {};
         function filledCell(cell) {
           return cell !== '' && cell != null;
         }
-        function loadFileData(filename) {
+       function loadFileData(filename) {
            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
              try {
                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
                var firstSheetName = workbook.SheetNames[0];
                var worksheet = workbook.Sheets[firstSheetName];
 
-               // Convert to array of arrays
+               // Convert sheet to JSON array of arrays
                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+
+               // Filter out completely blank rows
                var filteredData = jsonData.filter(row => row.some(filledCell));
 
-               // Find the min and max column indexes that have data
+               // --- Step 1: Skip top metadata rows (e.g. first 2-3) for determining min/max column range ---
+               const dataOnlyRows = filteredData.slice(2);  // adjust this if needed
+
                let minCol = Infinity;
                let maxCol = -1;
 
-               filteredData.forEach(row => {
-                 row.forEach((cell, idx) => {
+               dataOnlyRows.forEach(row => {
+                 row.forEach((cell, colIdx) => {
                    if (filledCell(cell)) {
-                     if (idx < minCol) minCol = idx;
-                     if (idx > maxCol) maxCol = idx;
+                     if (colIdx < minCol) minCol = colIdx;
+                     if (colIdx > maxCol) maxCol = colIdx;
                    }
                  });
                });
 
                if (minCol === Infinity || maxCol === -1) {
-                 console.warn("No filled columns found.");
+                 console.warn("No non-empty columns found.");
                  return "";
                }
 
-               // Crop columns from minCol to maxCol
+               // --- Step 2: Crop entire dataset (including top metadata rows) to column range ---
                const croppedData = filteredData.map(row => row.slice(minCol, maxCol + 1));
 
-               // Heuristic to find header row again in cropped data
+               // --- Step 3: Heuristic to detect real header row (skip sparse header rows) ---
                var headerRowIndex = croppedData.findIndex((row, index) =>
                  row.filter(filledCell).length >= croppedData[index + 1]?.filter(filledCell).length
                );
                if (headerRowIndex === -1 || headerRowIndex > 25) headerRowIndex = 0;
 
-               // Convert cropped data to CSV
+               // --- Step 4: Convert to CSV for rendering ---
                const sheet = XLSX.utils.aoa_to_sheet(croppedData.slice(headerRowIndex));
                return XLSX.utils.sheet_to_csv(sheet, { header: 1 });
 
@@ -54,6 +58,7 @@
            }
            return gk_fileData[filename] || "";
          }
+
         </script><!DOCTYPE html>
 <html lang="en">
 <head>
