@@ -1,65 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-       function loadFileData(filename) {
-           if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-             try {
-               var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-               var firstSheetName = workbook.SheetNames[0];
-               var worksheet = workbook.Sheets[firstSheetName];
-
-               // Convert sheet to JSON array of arrays
-               var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-
-               // Filter out completely blank rows
-               var filteredData = jsonData.filter(row => row.some(filledCell));
-
-               // --- Step 1: Skip top metadata rows (e.g. first 2-3) for determining min/max column range ---
-               const dataOnlyRows = filteredData.slice(2);  // adjust this if needed
-
-               let minCol = Infinity;
-               let maxCol = -1;
-
-               dataOnlyRows.forEach(row => {
-                 row.forEach((cell, colIdx) => {
-                   if (filledCell(cell)) {
-                     if (colIdx < minCol) minCol = colIdx;
-                     if (colIdx > maxCol) maxCol = colIdx;
-                   }
-                 });
-               });
-
-               if (minCol === Infinity || maxCol === -1) {
-                 console.warn("No non-empty columns found.");
-                 return "";
-               }
-
-               // --- Step 2: Crop entire dataset (including top metadata rows) to column range ---
-               const croppedData = filteredData.map(row => row.slice(minCol, maxCol + 1));
-
-               // --- Step 3: Heuristic to detect real header row (skip sparse header rows) ---
-               var headerRowIndex = croppedData.findIndex((row, index) =>
-                 row.filter(filledCell).length >= croppedData[index + 1]?.filter(filledCell).length
-               );
-               if (headerRowIndex === -1 || headerRowIndex > 25) headerRowIndex = 0;
-
-               // --- Step 4: Convert to CSV for rendering ---
-               const sheet = XLSX.utils.aoa_to_sheet(croppedData.slice(headerRowIndex));
-               return XLSX.utils.sheet_to_csv(sheet, { header: 1 });
-
-             } catch (e) {
-               console.error(e);
-               return "";
-             }
-           }
-           return gk_fileData[filename] || "";
-         }
-
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -172,6 +111,43 @@
     const table = document.getElementById("dataTable");
     const lastUpdatedDiv = document.getElementById("lastUpdated");
 
+    function parseCSV(csv) {
+      const rows = csv.trim().split("\n").map(row => row.split(",").map(cell => cell.trim()));
+
+      // Find the first row with meaningful data (heuristic: first row with at least 2 non-empty cells)
+      let startRowIndex = 0;
+      for (let i = 0; i < rows.length; i++) {
+        if (rows[i].filter(cell => cell !== '').length >= 2) {
+          startRowIndex = i;
+          break;
+        }
+      }
+
+      const dataRows = rows.slice(startRowIndex);
+
+      // Determine the column range by looking at the header row
+      const headerRow = dataRows[0];
+      let firstFilledCol = -1;
+      let lastFilledCol = -1;
+
+      for (let i = 0; i < headerRow.length; i++) {
+        if (headerRow[i] !== '') {
+          if (firstFilledCol === -1) {
+            firstFilledCol = i;
+          }
+          lastFilledCol = i;
+        }
+      }
+
+      if (firstFilledCol === -1) {
+        // Fallback if no filled header is found
+        return [];
+      }
+
+      // Crop all data rows to the identified column range
+      return dataRows.map(row => row.slice(firstFilledCol, lastFilledCol + 1));
+    }
+
     function fetchSheetData(month) {
       const gid = GID_MAP[month];
       const url = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
@@ -182,17 +158,19 @@
           return response.text();
         })
         .then(csv => {
-          const rows = csv.trim().split("\n").map(row =>
-            row.split(",").map(cell => cell.trim())
-          );
+          const processedRows = parseCSV(csv);
+
+          if (processedRows.length === 0) {
+            table.innerHTML = "<tr><td colspan='100%'>No data available for this month.</td></tr>";
+            return;
+          }
 
           // Clear previous table
           table.innerHTML = "";
 
           // Add header with dynamic color assignment
           const headerRow = document.createElement("tr");
-          const headers = rows[0];
-          console.log("Headers:", headers); // Debug: Log headers
+          const headers = processedRows[0];
           headers.forEach((header, idx) => {
             const th = document.createElement("th");
             th.textContent = header || `Column ${idx + 1}`; // Handle empty headers
@@ -202,41 +180,28 @@
           });
           table.appendChild(headerRow);
 
-          // Track merged cells (e.g., based on S.No)
-          let lastSNo = null;
-          let rowspanCount = 1;
-
           // Add data rows with merging and color coding
-          rows.slice(1).forEach((row, idx) => {
-            console.log("Row", idx + 1, ":", row); // Debug: Log each row
+          for (let i = 1; i < processedRows.length; i++) {
+            const row = processedRows[i];
             const tr = document.createElement("tr");
-            tr.className = idx % 2 === 0 ? "row-even" : "";
-            if (row[0] === "Total") tr.className = "total-row";
-            else if (row[0] === "Average") tr.className = "average-row";
+            tr.className = (i - 1) % 2 === 0 ? "row-even" : ""; // Adjust for header row being removed
+
+            // Apply special row classes for Total and Average
+            if (row[0] && row[0].toLowerCase() === "total") tr.className = "total-row";
+            else if (row[0] && row[0].toLowerCase() === "average") tr.className = "average-row";
 
             row.forEach((cell, colIdx) => {
               const td = document.createElement("td");
               td.textContent = cell || ""; // Handle empty cells
 
-              // Apply color groups based on header
+              // Apply color groups based on header (using headers from processedRows[0])
               if (headers[colIdx] && headers[colIdx].includes("MLD")) td.classList.add("mld-group");
               else if (headers[colIdx] && headers[colIdx].includes("Litters")) td.classList.add("litres-group");
-
-              // Simulate merging for S.No if consecutive values are the same
-              if (colIdx === 0 && cell === lastSNo && lastSNo !== null && cell !== "") {
-                rowspanCount++;
-                td.setAttribute("rowspan", rowspanCount);
-                td.style.verticalAlign = "middle";
-              } else if (colIdx === 0) {
-                lastSNo = cell;
-                rowspanCount = 1;
-                if (cell !== "") td.setAttribute("rowspan", rowspanCount);
-              }
 
               tr.appendChild(td);
             });
             table.appendChild(tr);
-          });
+          }
         })
         .catch(err => {
           console.error("Fetch Error:", err);
@@ -244,42 +209,24 @@
         });
     }
 
-    function fetchLastUpdated() {
-      const API_KEY = "AIzaSyCuqhmhNPQjcYvDAxlgB-3fjy8h6CRvx9M"; // Your provided API key
-      const spreadsheetId = SPREADSHEET_ID.split("-")[0]; // Extract base ID
-      console.log("Fetching last updated for ID:", spreadsheetId); // Debug ID
-      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=properties(modifiedTime)&key=${API_KEY}`)
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          return res.json();
-        })
-        .then(data => {
-          console.log("API Response:", data); // Debug response
-          if (data.properties && data.properties.modifiedTime) {
-            const date = new Date(data.properties.modifiedTime);
-            lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
-          } else {
-            lastUpdatedDiv.textContent = "Last updated: Unknown (Check API response)";
-          }
-        })
-        .catch(err => {
-          console.error("API Error:", err);
-          lastUpdatedDiv.textContent = `Last updated: Unknown (Error: ${err.message})`;
-          // Fallback to current date
-          const now = new Date();
-          lastUpdatedDiv.textContent += ` - Fallback: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
-        });
+    // Since directly fetching `modifiedTime` from Google Sheets API requires authentication
+    // which is not suitable for a simple public web page without a backend,
+    // we'll update the "Last updated" text based on the current date and time.
+    function updateLastUpdatedToCurrentTime() {
+      const now = new Date();
+      lastUpdatedDiv.textContent = `Last updated: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
     }
 
     // Event listener for dropdown
     monthSelect.addEventListener("change", () => {
       const selectedMonth = monthSelect.value;
       fetchSheetData(selectedMonth);
+      updateLastUpdatedToCurrentTime(); // Update time on month change
     });
 
     // Initial load
     fetchSheetData(monthSelect.value);
-    fetchLastUpdated();
+    updateLastUpdatedToCurrentTime(); // Set initial last updated time
   </script>
 
 </body>
