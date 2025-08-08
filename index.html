@@ -5,11 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</title>
   <style>
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
       font-family: Arial, sans-serif;
       background-color: #f3f4f6;
-      padding: 20px;
-      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h2 {
       color: #1e3a8a;
@@ -25,20 +29,49 @@
       width: calc(100% - 24px);
       max-width: 300px;
     }
+    #lastUpdated {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 10px 0 20px 0;
+      text-align: center;
+    }
+    .main-content {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-grow: 1;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+    .select-wrapper {
+      text-align: center;
+      width: 100%;
+    }
+    .container {
+      overflow-x: auto; /* Allow horizontal scrolling for the table */
+      width: 100%;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex-grow: 1; /* Allows the container to fill remaining vertical space */
+      margin-bottom: 20px; /* Space at the bottom */
+    }
     table {
       width: 100%;
-      min-width: 800px; /* Ensure minimum width to prevent collapse */
       border-collapse: collapse;
       font-size: 12px;
-      background: white;
-      margin-top: 10px;
-      table-layout: fixed; /* Fixed layout to control column widths */
+      min-width: 800px; /* Ensure table doesn't get too small */
+      table-layout: auto; /* Changed to auto for better content fit, can be fixed if desired */
     }
     th, td {
-      border: 1px solid #ccc;
-      padding: 6px;
+      border: 1px solid #ddd;
+      padding: 8px;
       text-align: left;
-      word-wrap: break-word; /* Prevent text overflow */
+      white-space: nowrap; /* Prevent text wrapping in cells by default */
     }
     th {
       background-color: #2563eb !important;
@@ -51,77 +84,25 @@
       background-color: #f9fafb !important;
     }
     .total-row {
-      background-color: #a3e635 !important; /* Green for Total */
+      background-color: #a3e635 !important;
       font-weight: bold;
     }
     .average-row {
-      background-color: #fde047 !important; /* Yellow for Average */
+      background-color: #fde047 !important;
       font-weight: bold;
     }
-    /* Specific column widths for better layout */
-    #dataTable th:nth-child(1),
-    #dataTable td:nth-child(1) { width: 5%; } /* S.No */
-    #dataTable th:nth-child(2),
-    #dataTable td:nth-child(2) { width: 10%; } /* Date */
-    #dataTable th:nth-child(3),
-    #dataTable td:nth-child(3) { width: 10%; } /* Main Ent (MLD) */
-    #dataTable th:nth-child(4),
-    #dataTable td:nth-child(4) { width: 10%; } /* MGP C&EK (MLD) */
-    #dataTable th:nth-child(5),
-    #dataTable td:nth-child(5) { width: 10%; } /* MGP (MLD) */
-    #dataTable th:nth-child(6),
-    #dataTable td:nth-child(6) { width: 10%; } /* Main Ent (CWSS-238 MLD) */
-    #dataTable th:nth-child(7),
-    #dataTable td:nth-child(7) { width: 10%; } /* Main Ent (Litters) */
-    #dataTable th:nth-child(8),
-    #dataTable td:nth-child(8) { width: 10%; } /* MGP C&EK (Litters) */
-    #dataTable th:nth-child(9),
-    #dataTable td:nth-child(9) { width: 10%; } /* MGP (Litters) */
-    #dataTable th:nth-child(10),
-    #dataTable td:nth-child(10) { width: 10%; } /* Sump (Litters) */
-    #dataTable th:nth-child(11),
-    #dataTable td:nth-child(11) { width: 10%; } /* Main Ent (CWSS-238 Litters) */
-
-    /* New classes for MLD and Litters groups for better readability and maintainability */
     .mld-group {
       background-color: #93c5fd !important; /* Light blue for MLD */
     }
     .litres-group {
       background-color: #d8b4fe !important; /* Light purple for Litres */
     }
-
-    #lastUpdated {
-      font-size: 12px;
-      color: #6b7280;
-      margin: 10px 0;
-      text-align: center;
-    }
-    .container {
-      overflow-x: auto; /* Ensure horizontal scroll if needed */
-      max-width: 1200px; /* Max width for content on larger screens */
-      margin: 0 auto; /* Center the main content area */
-      padding: 0 20px; /* Add some horizontal padding */
-      box-sizing: border-box; /* Include padding in width calculation */
-    }
-
-    /* Media queries for fine-tuning on smaller screens */
+    /* Responsive adjustments for table cells if needed for wrapping */
     @media (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      h2 {
-        font-size: 1.5em;
-      }
-      select {
-        font-size: 14px;
-        padding: 6px;
-      }
-      .container {
-        padding: 0 10px;
-      }
-      table {
-        min-width: unset; /* Allow table to shrink on very small screens */
-        width: 100%;
+      th, td {
+        padding: 5px;
+        font-size: 10px;
+        white-space: normal; /* Allow text wrapping on smaller screens */
       }
     }
   </style>
@@ -130,160 +111,84 @@
 
   <h2>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</h2>
 
-  <div style="text-align: center;">
-    <label for="monthSelect">Select Month: </label>
-    <select id="monthSelect">
-      <option value="Average">2025 Average</option>
-      <option value="Jul">July</option>
-      <option value="Aug">August</option>
-      <option value="Sep">September</option>
-      <option value="Oct">October</option>
-      <option value="Nov">November</option>
-      <option value="Dec">December</option>
-    </select>
-  </div>
+  <div class="main-content">
+    <div class="select-wrapper">
+      <label for="monthSelect">Select Month: </label>
+      <select id="monthSelect">
+        <option value="Average">2025 Average</option>
+        <option value="Jul">July</option>
+        <option value="Aug">August</option>
+        <option value="Sep">September</option>
+        <option value="Oct">October</option>
+        <option value="Nov">November</option>
+        <option value="Dec">December</option>
+      </select>
+    </div>
 
-  <div id="lastUpdated">Last updated: Loading...</div>
-  <div class="container">
-    <table id="dataTable"></table>
+    <div id="lastUpdated">Last updated: Loading...</div>
+    <div class="container">
+      <table id="dataTable"></table>
+    </div>
   </div>
 
   <script>
-    // This map now holds the contentFetchId for each CSV file you uploaded
-    const FILE_FETCH_IDS = {
-      "Average": "uploaded:water_meter_readings.xlsx - 2025 Average.csv",
-      "Jul": "uploaded:water_meter_readings.xlsx - Jul.csv",
-      "Aug": "uploaded:water_meter_readings.xlsx - Aug.csv",
-      "Sep": "uploaded:water_meter_readings.xlsx - Sep.csv",
-      "Oct": "uploaded:water_meter_readings.xlsx - Oct.csv",
-      "Nov": "uploaded:water_meter_readings.xlsx - Nov.csv",
-      "Dec": "uploaded:water_meter_readings.xlsx - Dec.csv"
+    // This is the URL for the Google Apps Script Web App you provided
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyRPZOPcqByBONAmMtMLoIiut1cd_bNwHHj7KOFDe7IYm7gryFXfJZPCWSkaoStqy9m/exec";
+
+    const GID_MAP = {
+      "Average": "676595147",
+      "Jul": "2038204618",
+      "Aug": "812809410",
+      "Sep": "555648873",
+      "Oct": "521072477",
+      "Nov": "1962131756",
+      "Dec": "397538262"
     };
 
     const monthSelect = document.getElementById("monthSelect");
     const table = document.getElementById("dataTable");
     const lastUpdatedDiv = document.getElementById("lastUpdated");
 
-    // --- CSV Parsing Logic ---
-    function parseCSV(csv) {
-      const rows = csv.trim().split("\n").map(row => row.split(",").map(cell => cell.trim()));
+    // This function fetches and displays the data from the Google Apps Script
+    async function fetchAndDisplayData(month) {
+      const gid = GID_MAP[month];
+      const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
 
-      let headerRowIndex = -1;
-      // Find the header row by looking for "S.No" and "Date"
-      for (let i = 0; i < rows.length; i++) {
-        if (rows[i].includes("S.No") && rows[i].includes("Date")) {
-          headerRowIndex = i;
-          break;
-        }
-      }
-
-      if (headerRowIndex === -1) {
-        console.warn("Header row (S.No, Date) not found. Attempting to use the first row with enough content as header.");
-        // Fallback: Find the first row that is not completely empty and has at least 3 cells
-        for (let i = 0; i < rows.length; i++) {
-            if (rows[i].filter(cell => cell !== '').length >= 3) {
-                headerRowIndex = i;
-                break;
-            }
-        }
-        if (headerRowIndex === -1) { // If still not found, default to 0
-            headerRowIndex = 0;
-            console.error("Could not determine header row. Using the very first row.");
-        }
-      }
-
-      const rawDataStartingFromHeader = rows.slice(headerRowIndex);
-
-      // Determine the column range based on the header row's content
-      const header = rawDataStartingFromHeader[0];
-      let firstFilledCol = -1;
-      let lastFilledCol = -1;
-
-      for (let i = 0; i < header.length; i++) {
-        if (header[i] !== '') {
-          if (firstFilledCol === -1) {
-            firstFilledCol = i;
-          }
-          lastFilledCol = i;
-        }
-      }
-
-      // If header is empty or sparse, we need a more robust way to define the actual data columns.
-      if (firstFilledCol === -1 || lastFilledCol === -1 || (lastFilledCol - firstFilledCol + 1 < 5 && rawDataStartingFromHeader.length > 1)) {
-          console.warn("Header range not clearly defined by filled headers. Re-evaluating column range based on data rows.");
-          let tempFirst = Infinity;
-          let tempLast = -1;
-
-          for (let i = 1; i < Math.min(rawDataStartingFromHeader.length, 11); i++) {
-              rawDataStartingFromHeader[i].forEach((cell, colIdx) => {
-                  if (cell !== '') {
-                      if (colIdx < tempFirst) tempFirst = colIdx;
-                      if (colIdx > tempLast) tempLast = colIdx;
-                  }
-              });
-          }
-          if (tempFirst !== Infinity) firstFilledCol = Math.min(firstFilledCol === -1 ? Infinity : firstFilledCol, tempFirst);
-          if (tempLast !== -1) lastFilledCol = Math.max(lastFilledCol, tempLast);
-
-          if (firstFilledCol === Infinity || lastFilledCol === -1) {
-              firstFilledCol = 0;
-              lastFilledCol = header.length > 0 ? header.length - 1 : 10;
-              console.warn("Failed to determine column range, defaulting to columns from 0 to", lastFilledCol);
-          }
-      }
-
-      // Crop all rows (including the header) to the identified column range
-      return rawDataStartingFromHeader.map(row => row.slice(firstFilledCol, lastFilledCol + 1));
-    }
-
-    // --- Data Fetching and Table Rendering ---
-    async function fetchDataAndRenderTable(month) {
-      const fetchId = FILE_FETCH_IDS[month];
-      if (!fetchId) {
-        table.innerHTML = "<tr><td colspan='100%'>File not found for this month.</td></tr>";
-        return;
-      }
+      // Show a loading message
+      table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading data...</td></tr>";
 
       try {
-        // Use file_content_fetcher to get the content of the CSV file
-        const csvContent = await new Promise((resolve, reject) => {
-          // This is a placeholder for the actual tool call.
-          // In a real environment, this would be an API call like:
-          // print(file_content_fetcher.fetch(query='Get sheet data for ' + month, source_references=[fetchId]))
-          // For demonstration, we'll simulate it, but in the actual environment
-          // this will be replaced by the tool's output.
-          console.log(`Fetching content for: ${fetchId}`);
-          // Replace this with the actual tool call's output mechanism
-          // For testing, you might need to manually input CSV content here
-          // resolve("S.No,Date,Main Ent,MGP C&EK,MGP,Main Ent (CWSS-238),Main Ent (Litters),MGP C&EK (Litters),MGP (Litters),Sump (Litters),Main Ent (CWSS-238 Litters)\n0,2025-06-30,10,20,30,40,10000,20000,30000,40000,50000\n1,2025-07-01,11,21,31,41,11000,21000,31000,41000,51000"); // Example dummy CSV
-          // The environment will execute the tool_code and provide the output here.
-          // Since I cannot directly execute tools in this JS block, I will prompt
-          // for the actual tool call to be performed externally.
-          // The response will include a `tool_code` block for the fetch.
-          // Once the content is fetched, it will proceed.
-        });
+        console.log("Attempting to fetch data from:", url);
+        const response = await fetch(url);
+        
+        // A NetworkError often indicates a CORS issue or incorrect deployment settings.
+        // It's not a status error (like 404), but a failure to connect.
+        if (!response.ok) {
+          const errorMsg = `Failed to fetch data with status code: ${response.status}. This may mean your Google Apps Script is not correctly deployed.`;
+          throw new Error(errorMsg);
+        }
+        
+        const data = await response.json(); // Data is already JSON thanks to Apps Script
 
-        const processedRows = parseCSV(csvContent);
-
-        if (processedRows.length < 2) { // Need at least a header and one data row
-          table.innerHTML = "<tr><td colspan='100%'>No data or insufficient data available for this month.</td></tr>";
+        if (!data || data.length < 1) {
+          table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>No data available for this month.</td></tr>";
           return;
         }
+
+        // The first row of data is the header
+        const headers = data[0];
+        const rowsToDisplay = data.slice(1); // Remaining rows are data
 
         // Clear previous table
         table.innerHTML = "";
 
-        // The first row of processedRows is always the header
-        const headers = processedRows[0];
-        const dataToDisplay = processedRows.slice(1); // All subsequent rows are data
-
-        // Create and append table header
+        // Add header row
         const headerRowElement = document.createElement("tr");
-        headers.forEach((header, idx) => {
+        headers.forEach((headerText, colIdx) => {
           const th = document.createElement("th");
-          let displayHeader = header || '';
-          // Condition to ignore "Column X" placeholders if they appear
-          if (displayHeader.match(/^Column \d+$/)) { // Matches "Column 1", "Column 2", etc.
+          // Clean up "Column X" placeholders if they still appear from Apps Script `getDisplayValues`
+          let displayHeader = headerText.trim() || '';
+          if (displayHeader.match(/^Column \d+$/)) {
                displayHeader = '';
           }
           th.textContent = displayHeader;
@@ -295,31 +200,46 @@
         });
         table.appendChild(headerRowElement);
 
-        // Add data rows with merging and color coding
-        dataToDisplay.forEach((row, idx) => {
+        // Add data rows
+        rowsToDisplay.forEach((row, idx) => {
           const tr = document.createElement("tr");
+          // Apply row-even for alternating colors
           tr.className = idx % 2 === 0 ? "row-even" : "";
 
           // Apply special row classes for Total and Average (case-insensitive check for first cell)
-          if (row[0] && row[0].toLowerCase() === "total") tr.className = "total-row";
-          else if (row[0] && row[0].toLowerCase() === "average") tr.className = "average-row";
+          if (row[0] && String(row[0]).toLowerCase().includes("total")) tr.className = "total-row";
+          else if (row[0] && String(row[0]).toLowerCase().includes("average")) tr.className = "average-row";
 
-          row.forEach((cell, colIdx) => {
+          row.forEach((cellContent, colIdx) => {
             const td = document.createElement("td");
-            td.textContent = cell || ""; // Handle empty cells
-
+            td.textContent = cellContent || ""; // Handle empty cells
             // Apply color groups to cells based on the header of their column
             if (headers[colIdx] && headers[colIdx].includes("MLD")) td.classList.add("mld-group");
             else if (headers[colIdx] && headers[colIdx].includes("Litters")) td.classList.add("litres-group");
-
-            td.style.minWidth = '50px'; // Ensure a minimum width for cells to prevent squishing
             tr.appendChild(td);
           });
           table.appendChild(tr);
         });
-      } catch (err) {
-        console.error("Error fetching or rendering data:", err);
-        table.innerHTML = "<tr><td colspan='100%'>Failed to load data. Please try again.</td></tr>";
+
+      } catch (error) {
+        console.error("Error fetching or displaying data:", error);
+        // Display a more helpful error message for the user
+        const errorMessage = `
+          <div style='text-align:left; padding: 20px; background-color: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; color: #b91c1c; font-size: 14px;'>
+            <p><strong>Failed to load data. This is likely due to an issue with your Google Apps Script deployment.</strong></p>
+            <p>Please follow these steps to fix the issue:</p>
+            <ol>
+              <li>Go to your Google Apps Script project for the spreadsheet.</li>
+              <li>Click on "Deploy" > "Manage deployments" or "New deployment".</li>
+              <li>Ensure the deployment is a "Web app".</li>
+              <li>Under "Who has access", select "Anyone". This is a critical step.</li>
+              <li>Click "Deploy" (or "Done" to save changes) and get the new URL if it changed.</li>
+              <li>Make sure the URL in this script matches the Web App URL exactly: <code>${APPS_SCRIPT_WEB_APP_URL}</code></li>
+            </ol>
+            <p>Original error: ${error.message}</p>
+          </div>
+        `;
+        table.innerHTML = `<tr><td colspan='100%'>${errorMessage}</td></tr>`;
       }
     }
 
@@ -331,12 +251,12 @@
     // Event listener for dropdown
     monthSelect.addEventListener("change", () => {
       const selectedMonth = monthSelect.value;
-      fetchDataAndRenderTable(selectedMonth);
+      fetchAndDisplayData(selectedMonth);
       updateLastUpdatedToCurrentTime();
     });
 
     // Initial load
-    fetchDataAndRenderTable(monthSelect.value);
+    fetchAndDisplayData(monthSelect.value);
     updateLastUpdatedToCurrentTime();
   </script>
 
