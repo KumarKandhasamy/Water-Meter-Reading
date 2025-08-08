@@ -35,7 +35,6 @@
       padding: 6px;
       text-align: left;
       word-wrap: break-word; /* Prevent text overflow */
-      max-width: 150px; /* Limit cell width */
     }
     th {
       background-color: #2563eb !important;
@@ -70,6 +69,29 @@
     .container {
       overflow-x: auto; /* Ensure horizontal scroll if needed */
     }
+    /* Specific column widths for better layout */
+    #dataTable th:nth-child(1),
+    #dataTable td:nth-child(1) { width: 5%; } /* S.No */
+    #dataTable th:nth-child(2),
+    #dataTable td:nth-child(2) { width: 10%; } /* Date */
+    #dataTable th:nth-child(3),
+    #dataTable td:nth-child(3) { width: 15%; } /* Main Ent (MLD) */
+    #dataTable th:nth-child(4),
+    #dataTable td:nth-child(4) { width: 15%; } /* MGP C&EK (MLD) */
+    #dataTable th:nth-child(5),
+    #dataTable td:nth-child(5) { width: 10%; } /* MGP (MLD) */
+    #dataTable th:nth-child(6),
+    #dataTable td:nth-child(6) { width: 10%; } /* Main Ent (CWSS-238 MLD) */
+    #dataTable th:nth-child(7),
+    #dataTable td:nth-child(7) { width: 10%; } /* Main Ent (Litters) */
+    #dataTable th:nth-child(8),
+    #dataTable td:nth-child(8) { width: 15%; } /* MGP C&EK (Litters) */
+    #dataTable th:nth-child(9),
+    #dataTable td:nth-child(9) { width: 10%; } /* MGP (Litters) */
+    #dataTable th:nth-child(10),
+    #dataTable td:nth-child(10) { width: 5%; } /* Sump (Litters) */
+    #dataTable th:nth-child(11),
+    #dataTable td:nth-child(11) { width: 5%; } /* Main Ent (CWSS-238 Litters) */
   </style>
 </head>
 <body>
@@ -114,24 +136,31 @@
     function parseCSV(csv) {
       const rows = csv.trim().split("\n").map(row => row.split(",").map(cell => cell.trim()));
 
-      // Find the first row with meaningful data (heuristic: first row with at least 2 non-empty cells)
-      let startRowIndex = 0;
+      let headerRowIndex = -1;
+      // Find the header row (e.g., "S.No,Date,Main Ent,..." or similar with at least 3 meaningful columns)
       for (let i = 0; i < rows.length; i++) {
-        if (rows[i].filter(cell => cell !== '').length >= 2) {
-          startRowIndex = i;
+        const row = rows[i];
+        // Heuristic: Check for "S.No" and "Date" in the row, and ensure enough filled cells
+        if (row.includes("S.No") && row.includes("Date") && row.filter(cell => cell !== '').length >= 3) {
+          headerRowIndex = i;
           break;
         }
       }
 
-      const dataRows = rows.slice(startRowIndex);
+      if (headerRowIndex === -1) {
+        console.warn("Header row not found. Using first row as header.");
+        headerRowIndex = 0; // Fallback to first row if no clear header is found
+      }
 
-      // Determine the column range by looking at the header row
-      const headerRow = dataRows[0];
+      const rawDataRows = rows.slice(headerRowIndex);
+
+      // Determine the column range based on the header row
+      const header = rawDataRows[0];
       let firstFilledCol = -1;
       let lastFilledCol = -1;
 
-      for (let i = 0; i < headerRow.length; i++) {
-        if (headerRow[i] !== '') {
+      for (let i = 0; i < header.length; i++) {
+        if (header[i] !== '') {
           if (firstFilledCol === -1) {
             firstFilledCol = i;
           }
@@ -139,13 +168,30 @@
         }
       }
 
-      if (firstFilledCol === -1) {
-        // Fallback if no filled header is found
-        return [];
+      // If no filled headers, or header is too sparse, try to find the actual data start
+      if (firstFilledCol === -1 || lastFilledCol === -1) {
+          console.warn("Header row is empty or too sparse. Attempting to find column range from data.");
+          firstFilledCol = Infinity;
+          lastFilledCol = -1;
+
+          // Check a few rows after the potential header for meaningful data to define column bounds
+          for (let i = 1; i < Math.min(rawDataRows.length, 10); i++) { // Check up to 10 data rows
+              rawDataRows[i].forEach((cell, colIdx) => {
+                  if (cell !== '') {
+                      if (colIdx < firstFilledCol) firstFilledCol = colIdx;
+                      if (colIdx > lastFilledCol) lastFilledCol = colIdx;
+                  }
+              });
+          }
+          if (firstFilledCol === Infinity) firstFilledCol = 0; // Fallback if no data found
+          if (lastFilledCol === -1) lastFilledCol = header.length - 1; // Fallback if no data found
       }
 
+
       // Crop all data rows to the identified column range
-      return dataRows.map(row => row.slice(firstFilledCol, lastFilledCol + 1));
+      const processedRows = rawDataRows.map(row => row.slice(firstFilledCol, lastFilledCol + 1));
+
+      return processedRows;
     }
 
     function fetchSheetData(month) {
@@ -160,8 +206,8 @@
         .then(csv => {
           const processedRows = parseCSV(csv);
 
-          if (processedRows.length === 0) {
-            table.innerHTML = "<tr><td colspan='100%'>No data available for this month.</td></tr>";
+          if (processedRows.length < 2) { // Need at least a header and one data row
+            table.innerHTML = "<tr><td colspan='100%'>No data or insufficient data available for this month.</td></tr>";
             return;
           }
 
@@ -173,9 +219,17 @@
           const headers = processedRows[0];
           headers.forEach((header, idx) => {
             const th = document.createElement("th");
-            th.textContent = header || `Column ${idx + 1}`; // Handle empty headers
-            if (header && header.includes("MLD")) th.classList.add("mld-group");
-            else if (header && header.includes("Litters")) th.classList.add("litres-group");
+            // Remove "Column X" placeholder if header is truly empty or irrelevant
+            let displayHeader = header || '';
+            // Condition to ignore "Column 2" and "Column 3" if they appear as empty placeholders
+            if (displayHeader.match(/^Column [23]$/)) {
+                 displayHeader = '';
+            }
+            th.textContent = displayHeader;
+
+            // Apply group classes based on header content
+            if (displayHeader.includes("MLD")) th.classList.add("mld-group");
+            else if (displayHeader.includes("Litters")) th.classList.add("litres-group");
             headerRow.appendChild(th);
           });
           table.appendChild(headerRow);
@@ -184,7 +238,7 @@
           for (let i = 1; i < processedRows.length; i++) {
             const row = processedRows[i];
             const tr = document.createElement("tr");
-            tr.className = (i - 1) % 2 === 0 ? "row-even" : ""; // Adjust for header row being removed
+            tr.className = (i - 1) % 2 === 0 ? "row-even" : "";
 
             // Apply special row classes for Total and Average
             if (row[0] && row[0].toLowerCase() === "total") tr.className = "total-row";
@@ -194,7 +248,7 @@
               const td = document.createElement("td");
               td.textContent = cell || ""; // Handle empty cells
 
-              // Apply color groups based on header (using headers from processedRows[0])
+              // Apply color groups based on the actual header content
               if (headers[colIdx] && headers[colIdx].includes("MLD")) td.classList.add("mld-group");
               else if (headers[colIdx] && headers[colIdx].includes("Litters")) td.classList.add("litres-group");
 
@@ -209,9 +263,6 @@
         });
     }
 
-    // Since directly fetching `modifiedTime` from Google Sheets API requires authentication
-    // which is not suitable for a simple public web page without a backend,
-    // we'll update the "Last updated" text based on the current date and time.
     function updateLastUpdatedToCurrentTime() {
       const now = new Date();
       lastUpdatedDiv.textContent = `Last updated: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
@@ -221,12 +272,12 @@
     monthSelect.addEventListener("change", () => {
       const selectedMonth = monthSelect.value;
       fetchSheetData(selectedMonth);
-      updateLastUpdatedToCurrentTime(); // Update time on month change
+      updateLastUpdatedToCurrentTime();
     });
 
     // Initial load
     fetchSheetData(monthSelect.value);
-    updateLastUpdatedToCurrentTime(); // Set initial last updated time
+    updateLastUpdatedToCurrentTime();
   </script>
 
 </body>
