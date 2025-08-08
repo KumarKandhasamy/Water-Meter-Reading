@@ -9,33 +9,76 @@
       font-family: Arial, sans-serif;
       background-color: #f3f4f6;
       padding: 20px;
+      margin: 0; /* Remove default body margin */
+      display: flex; /* Use flexbox for centering content */
+      flex-direction: column;
+      align-items: center; /* Center horizontally */
+      min-height: 100vh; /* Ensure body takes full viewport height */
     }
     h2 {
       color: #1e3a8a;
       text-align: center;
+      margin-bottom: 20px; /* Add some space below heading */
     }
     select {
-      padding: 6px;
+      padding: 8px; /* Slightly larger padding for better touch */
       margin: 10px;
-      font-size: 14px;
+      font-size: 16px; /* Larger font size for readability */
       border: 1px solid #d1d5db;
       border-radius: 4px;
+      width: calc(100% - 24px); /* Make dropdown almost full width with padding */
+      max-width: 300px; /* Limit dropdown width on larger screens */
     }
     #lastUpdated {
       font-size: 12px;
       color: #6b7280;
-      margin: 10px 0;
+      margin: 10px 0 20px 0; /* Adjust margin */
       text-align: center;
     }
-    .container {
-      overflow-x: auto; /* Ensure horizontal scroll if needed */
+    .main-content {
       width: 100%;
-      height: 70vh; /* Set a height for the iframe container, adjust as needed */
+      max-width: 900px; /* Max width for content on larger screens */
+      margin: 0 auto; /* Center the main content area */
+      display: flex; /* Use flexbox for dropdown and iframe */
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      overflow: hidden; /* Hide scrollbars if content overflows initially */
+      width: 100%;
+      /* Aspect ratio trick for responsive iframes (e.g., 56.25% for 16:9 ratio) */
+      /* This makes the height responsive based on width */
+      padding-top: 75%; /* Adjust this value (e.g., 56.25% for 16:9, 75% for 4:3) based on your sheet's typical aspect ratio */
+      position: relative; /* Needed for absolute positioning of iframe */
+      background-color: white; /* Give a background to the container */
+      border: 1px solid #ccc; /* Add border to container */
+      border-radius: 8px; /* Slightly rounded corners */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
     }
     iframe {
+      position: absolute; /* Position absolutely within the container */
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      border: 1px solid #ccc; /* Add a border to the iframe */
+      border: none; /* Remove iframe border as container has one */
+    }
+
+    /* Media queries for fine-tuning on smaller screens */
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      h2 {
+        font-size: 1.5em; /* Smaller heading on small screens */
+      }
+      select {
+        font-size: 14px;
+        padding: 6px;
+      }
+      .container {
+        padding-top: 100%; /* For a more square-like iframe on very small screens */
+      }
     }
   </style>
 </head>
@@ -43,30 +86,29 @@
 
   <h2>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</h2>
 
-  <div style="text-align: center;">
-    <label for="monthSelect">Select Month: </label>
-    <select id="monthSelect">
-      <option value="Average">2025 Average</option>
-      <option value="Jul">July</option>
-      <option value="Aug">August</option>
-      <option value="Sep">September</option>
-      <option value="Oct">October</option>
-      <option value="Nov">November</option>
-      <option value="Dec">December</option>
-    </select>
-  </div>
+  <div class="main-content">
+    <div style="text-align: center; width: 100%;">
+      <label for="monthSelect">Select Month: </label>
+      <select id="monthSelect">
+        <option value="Average">2025 Average</option>
+        <option value="Jul">July</option>
+        <option value="Aug">August</option>
+        <option value="Sep">September</option>
+        <option value="Oct">October</option>
+        <option value="Nov">November</option>
+        <option value="Dec">December</option>
+      </select>
+    </div>
 
-  <div id="lastUpdated">Last updated: Loading...</div>
-  <div class="container">
-    <iframe id="sheetIframe" frameborder="0"></iframe>
+    <div id="lastUpdated">Last updated: Loading...</div>
+    <div class="container">
+      <iframe id="sheetIframe" frameborder="0" allowfullscreen></iframe>
+    </div>
   </div>
 
   <script>
-    // Extract the base SPREADSHEET_ID from your provided iframe link
-    // The link is: https://docs.google.com/spreadsheets/d/e/2PACX-1vSZgyKDVKi31ku5JZ3sHK9HO0ncbIAJkTOzyFZgXw7KVZ9bi7oMqbgUkILKjF1zaVP4GcchfUHFTTVs/pubhtml?widget=true&amp;headers=false
     const SPREADSHEET_ID_BASE = "2PACX-1vSZgyKDVKi31ku5JZ3sHK9HO0ncbIAJkTOzyFZgXw7KVZ9bi7oMqbgUkILKjF1zaVP4GcchfUHFTTVs";
 
-    // GID_MAP remains the same as it maps months to specific sheet IDs
     const GID_MAP = {
       "Average": "676595147",
       "Jul": "2038204618",
@@ -83,29 +125,24 @@
 
     function loadSheetInIframe(month) {
       const gid = GID_MAP[month];
-      // Construct the iframe URL using the base ID, the GID, and the publishing parameters
-      // widget=true and headers=false are common parameters for embedded sheets
       const url = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID_BASE}/pubhtml?gid=${gid}&single=true&widget=true&headers=false`;
       sheetIframe.src = url;
     }
 
-    // Since directly fetching 'modifiedTime' from Google Sheets API is complex due to authentication,
-    // we'll update the "Last updated" text based on the current client-side date and time.
     function updateLastUpdatedToCurrentTime() {
       const now = new Date();
       lastUpdatedDiv.textContent = `Last updated: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
     }
 
-    // Event listener for dropdown
     monthSelect.addEventListener("change", () => {
       const selectedMonth = monthSelect.value;
       loadSheetInIframe(selectedMonth);
-      updateLastUpdatedToCurrentTime(); // Update time on month change
+      updateLastUpdatedToCurrentTime();
     });
 
     // Initial load
     loadSheetInIframe(monthSelect.value);
-    updateLastUpdatedToCurrentTime(); // Set initial last updated time
+    updateLastUpdatedToCurrentTime();
   </script>
 
 </body>
