@@ -6,31 +6,31 @@
   <title>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</title>
   <style>
     html, body {
-      height: 100%;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', sans-serif;
       background-color: #f3f4f6;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
     h2 {
       color: #1e3a8a;
       text-align: center;
       margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 1.5rem;
     }
     select {
-      padding: 8px;
+      padding: 10px;
       margin: 10px;
-      font-size: 16px;
+      font-size: 1rem;
       border: 1px solid #d1d5db;
-      border-radius: 4px;
+      border-radius: 8px;
       width: calc(100% - 24px);
       max-width: 300px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      background-color: white;
     }
     #lastUpdated {
-      font-size: 12px;
+      font-size: 0.875rem;
       color: #6b7280;
       margin: 10px 0 20px 0;
       text-align: center;
@@ -39,12 +39,11 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex-grow: 1;
       padding: 0 20px;
       box-sizing: border-box;
+      display: flex; /* Using flexbox for content alignment */
+      flex-direction: column;
+      align-items: center;
     }
     .select-wrapper {
       text-align: center;
@@ -54,58 +53,69 @@
       overflow-x: auto; /* Allow horizontal scrolling for the table */
       width: 100%;
       background: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      flex-grow: 1; /* Allows the container to fill remaining vertical space */
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
       margin-bottom: 20px; /* Space at the bottom */
     }
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate; /* Use separate to enable border-radius on cells */
+      border-spacing: 0;
       font-size: 12px;
-      min-width: 800px; /* Ensure table doesn't get too small */
-      table-layout: auto; /* Changed to auto for better content fit, can be fixed if desired */
+      table-layout: auto;
     }
     th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
+      border: 1px solid #e5e7eb;
+      padding: 12px;
       text-align: left;
       white-space: nowrap; /* Prevent text wrapping in cells by default */
     }
     th {
-      background-color: #2563eb !important;
+      background-color: #2563eb;
       color: white;
+      font-weight: 600;
       position: sticky;
       top: 0;
       z-index: 1;
     }
+    th:first-child {
+      border-top-left-radius: 10px;
+    }
+    th:last-child {
+      border-top-right-radius: 10px;
+    }
     .row-even {
-      background-color: #f9fafb !important;
+      background-color: #f9fafb;
     }
     .total-row {
-      background-color: #a3e635 !important;
+      background-color: #a3e635; /* Brighter green */
       font-weight: bold;
+      color: #166534;
     }
     .average-row {
-      background-color: #fde047 !important;
+      background-color: #fde047; /* Brighter yellow */
       font-weight: bold;
+      color: #92400e;
     }
     .mld-group {
-      background-color: #93c5fd !important; /* Light blue for MLD */
+      background-color: #bfdbfe; /* Lighter, more pastel blue for MLD */
+      color: #172554;
     }
     .litres-group {
-      background-color: #d8b4fe !important; /* Light purple for Litres */
+      background-color: #e9d5ff; /* Lighter, more pastel purple for Litres */
+      color: #4a044e;
     }
     /* Responsive adjustments for table cells if needed for wrapping */
     @media (max-width: 600px) {
       th, td {
-        padding: 5px;
+        padding: 8px;
         font-size: 10px;
         white-space: normal; /* Allow text wrapping on smaller screens */
       }
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
