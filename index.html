@@ -6,37 +6,54 @@
           return cell !== '' && cell != null;
         }
         function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
+           if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+             try {
+               var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+               var firstSheetName = workbook.SheetNames[0];
+               var worksheet = workbook.Sheets[firstSheetName];
 
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
+               // Convert to array of arrays
+               var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+               var filteredData = jsonData.filter(row => row.some(filledCell));
 
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
+               // Find the min and max column indexes that have data
+               let minCol = Infinity;
+               let maxCol = -1;
 
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
+               filteredData.forEach(row => {
+                 row.forEach((cell, idx) => {
+                   if (filledCell(cell)) {
+                     if (idx < minCol) minCol = idx;
+                     if (idx > maxCol) maxCol = idx;
+                   }
+                 });
+               });
+
+               if (minCol === Infinity || maxCol === -1) {
+                 console.warn("No filled columns found.");
+                 return "";
+               }
+
+               // Crop columns from minCol to maxCol
+               const croppedData = filteredData.map(row => row.slice(minCol, maxCol + 1));
+
+               // Heuristic to find header row again in cropped data
+               var headerRowIndex = croppedData.findIndex((row, index) =>
+                 row.filter(filledCell).length >= croppedData[index + 1]?.filter(filledCell).length
+               );
+               if (headerRowIndex === -1 || headerRowIndex > 25) headerRowIndex = 0;
+
+               // Convert cropped data to CSV
+               const sheet = XLSX.utils.aoa_to_sheet(croppedData.slice(headerRowIndex));
+               return XLSX.utils.sheet_to_csv(sheet, { header: 1 });
+
+             } catch (e) {
+               console.error(e);
+               return "";
+             }
+           }
+           return gk_fileData[filename] || "";
+         }
         </script><!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,16 +163,6 @@
       "Dec": "397538262"
     };
 
-    const START_MAP = {
-      "Average": { headerRow: 3, startCol: 3 }, // D4 (row 4, col D)
-      "Jul": { headerRow: 1, startCol: 1 },    // B2 (row 2, col B)
-      "Aug": { headerRow: 1, startCol: 1 },    // B2 (row 2, col B)
-      "Sep": { headerRow: 1, startCol: 1 },    // B2 (row 2, col B)
-      "Oct": { headerRow: 1, startCol: 1 },    // B2 (row 2, col B)
-      "Nov": { headerRow: 1, startCol: 1 },    // B2 (row 2, col B)
-      "Dec": { headerRow: 1, startCol: 1 }     // B2 (row 2, col B)
-    };
-
     const monthSelect = document.getElementById("monthSelect");
     const table = document.getElementById("dataTable");
     const lastUpdatedDiv = document.getElementById("lastUpdated");
@@ -163,20 +170,10 @@
     function fetchSheetData(month) {
       const gid = GID_MAP[month];
       const url = `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
-      console.log("Fetching URL:", url);
 
       fetch(url)
         .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-          }
-          const lastModified = response.headers.get("Last-Modified");
-          if (lastModified) {
-            const date = new Date(lastModified);
-            lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
-          } else {
-            lastUpdatedDiv.textContent = "Last updated: Unknown";
-          }
+          if (!response.ok) throw new Error("Failed to fetch data");
           return response.text();
         })
         .then(csv => {
@@ -187,39 +184,34 @@
           // Clear previous table
           table.innerHTML = "";
 
-          // Determine start based on sheet
-          const { headerRow, startCol } = START_MAP[month] || { headerRow: 0, startCol: 0 };
-          const headers = rows[headerRow].slice(startCol).filter(header => header !== "");
-          console.log("Cleaned Headers:", headers);
-
           // Add header with dynamic color assignment
-          const headerRowElement = document.createElement("tr");
+          const headerRow = document.createElement("tr");
+          const headers = rows[0];
+          console.log("Headers:", headers); // Debug: Log headers
           headers.forEach((header, idx) => {
             const th = document.createElement("th");
-            th.textContent = header || `Column ${idx + 1}`;
+            th.textContent = header || `Column ${idx + 1}`; // Handle empty headers
             if (header && header.includes("MLD")) th.classList.add("mld-group");
             else if (header && header.includes("Litters")) th.classList.add("litres-group");
-            headerRowElement.appendChild(th);
+            headerRow.appendChild(th);
           });
-          table.appendChild(headerRowElement);
+          table.appendChild(headerRow);
 
           // Track merged cells (e.g., based on S.No)
           let lastSNo = null;
           let rowspanCount = 1;
 
           // Add data rows with merging and color coding
-          rows.slice(headerRow + 1).forEach((row, idx) => {
-            console.log("Row", idx + 1, "Raw:", row);
-            const cleanedRow = row.slice(startCol).filter((_, i) => headers[i] !== undefined);
-            console.log("Row", idx + 1, "Cleaned:", cleanedRow);
+          rows.slice(1).forEach((row, idx) => {
+            console.log("Row", idx + 1, ":", row); // Debug: Log each row
             const tr = document.createElement("tr");
             tr.className = idx % 2 === 0 ? "row-even" : "";
-            if (cleanedRow[0] === "Total") tr.className = "total-row";
-            else if (cleanedRow[0] === "Average") tr.className = "average-row";
+            if (row[0] === "Total") tr.className = "total-row";
+            else if (row[0] === "Average") tr.className = "average-row";
 
-            cleanedRow.forEach((cell, colIdx) => {
+            row.forEach((cell, colIdx) => {
               const td = document.createElement("td");
-              td.textContent = cell;
+              td.textContent = cell || ""; // Handle empty cells
 
               // Apply color groups based on header
               if (headers[colIdx] && headers[colIdx].includes("MLD")) td.classList.add("mld-group");
@@ -243,11 +235,36 @@
         })
         .catch(err => {
           console.error("Fetch Error:", err);
-          table.innerHTML = `<tr><td colspan="100%">Failed to load data (Error: ${err.message})</td></tr>`;
+          table.innerHTML = "<tr><td colspan='100%'>Failed to load data</td></tr>";
         });
     }
 
-    // Remove fetchLastUpdated function as it's now handled in fetchSheetData
+    function fetchLastUpdated() {
+      const API_KEY = "AIzaSyCuqhmhNPQjcYvDAxlgB-3fjy8h6CRvx9M"; // Your provided API key
+      const spreadsheetId = SPREADSHEET_ID.split("-")[0]; // Extract base ID
+      console.log("Fetching last updated for ID:", spreadsheetId); // Debug ID
+      fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=properties(modifiedTime)&key=${API_KEY}`)
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          console.log("API Response:", data); // Debug response
+          if (data.properties && data.properties.modifiedTime) {
+            const date = new Date(data.properties.modifiedTime);
+            lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
+          } else {
+            lastUpdatedDiv.textContent = "Last updated: Unknown (Check API response)";
+          }
+        })
+        .catch(err => {
+          console.error("API Error:", err);
+          lastUpdatedDiv.textContent = `Last updated: Unknown (Error: ${err.message})`;
+          // Fallback to current date
+          const now = new Date();
+          lastUpdatedDiv.textContent += ` - Fallback: ${now.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
+        });
+    }
 
     // Event listener for dropdown
     monthSelect.addEventListener("change", () => {
@@ -257,6 +274,7 @@
 
     // Initial load
     fetchSheetData(monthSelect.value);
+    fetchLastUpdated();
   </script>
 
 </body>
