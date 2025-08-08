@@ -41,7 +41,7 @@
       margin: 0 auto;
       padding: 0 20px;
       box-sizing: border-box;
-      display: flex; /* Using flexbox for content alignment */
+      display: flex;
       flex-direction: column;
       align-items: center;
     }
@@ -50,17 +50,17 @@
       width: 100%;
     }
     .container {
-      overflow-x: auto; /* Allow horizontal scrolling for the table */
+      overflow-x: auto;
       width: 100%;
       background: white;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-      margin-bottom: 20px; /* Space at the bottom */
+      margin-bottom: 20px;
     }
     table {
       width: 100%;
-      border-collapse: separate; /* Use separate to enable border-radius on cells */
+      border-collapse: separate;
       border-spacing: 0;
       font-size: 12px;
       table-layout: auto;
@@ -69,7 +69,7 @@
       border: 1px solid #e5e7eb;
       padding: 12px;
       text-align: left;
-      white-space: nowrap; /* Prevent text wrapping in cells by default */
+      white-space: nowrap;
     }
     th {
       background-color: #2563eb;
@@ -89,29 +89,28 @@
       background-color: #f9fafb;
     }
     .total-row {
-      background-color: #a3e635; /* Brighter green */
+      background-color: #a3e635;
       font-weight: bold;
       color: #166534;
     }
     .average-row {
-      background-color: #fde047; /* Brighter yellow */
+      background-color: #fde047;
       font-weight: bold;
       color: #92400e;
     }
     .mld-group {
-      background-color: #bfdbfe; /* Lighter, more pastel blue for MLD */
+      background-color: #bfdbfe;
       color: #172554;
     }
     .litres-group {
-      background-color: #e9d5ff; /* Lighter, more pastel purple for Litres */
+      background-color: #e9d5ff;
       color: #4a044e;
     }
-    /* Responsive adjustments for table cells if needed for wrapping */
     @media (max-width: 600px) {
       th, td {
         padding: 8px;
         font-size: 10px;
-        white-space: normal; /* Allow text wrapping on smaller screens */
+        white-space: normal;
       }
     }
   </style>
@@ -143,7 +142,7 @@
 
   <script>
     // This is the URL for the Google Apps Script Web App you provided
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyRPZOPcqByBONAmMtMLoIiut1cd_bNwHHj7KOFDe7IYm7gryFXfJZPCWSkaoStqy9m/exec";
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
 
     const GID_MAP = {
       "Average": "676595147",
@@ -159,52 +158,76 @@
     const table = document.getElementById("dataTable");
     const lastUpdatedDiv = document.getElementById("lastUpdated");
     
-    // Set a cache expiration time of 1 hour (in milliseconds)
-    const CACHE_EXPIRATION_TIME = 60 * 60 * 1000; 
-
     // Function to update the last updated text, indicating if it's from cache or network
-    function updateLastUpdatedText(timestamp) {
-        const now = new Date();
+    function updateLastUpdatedText(timestamp, isCached = false) {
+        // Check if the timestamp is a valid number before trying to create a Date object
+        if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
+            lastUpdatedDiv.textContent = "Last updated: Unknown";
+            return;
+        }
+
         const cachedDate = new Date(timestamp);
-        const diff = (now.getTime() - cachedDate.getTime()) / 1000 / 60; // Difference in minutes
+        const formattedDate = cachedDate.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
         
         let lastUpdatedMessage;
-        if (diff < 1) {
-            lastUpdatedMessage = `Last updated: Just now`;
-        } else {
-            const formattedDate = cachedDate.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+        if (isCached) {
             lastUpdatedMessage = `Last updated: ${formattedDate} (Cached)`;
+        } else {
+            lastUpdatedMessage = `Last updated: ${formattedDate}`;
         }
         lastUpdatedDiv.textContent = lastUpdatedMessage;
     }
     
+    // This function fetches the last modified timestamp from the Apps Script
+    async function fetchLastModifiedTimestamp() {
+      try {
+        const url = `${APPS_SCRIPT_WEB_APP_URL}?info=lastModified`;
+        const response = await fetch(url);
+        // Explicitly check if the response was successful
+        if (!response.ok) {
+          console.error(`Failed to get timestamp. Status: ${response.status}`);
+          return null;
+        }
+        const result = await response.json();
+        console.log("Raw timestamp response:", result); // Log the raw response for debugging
+        return result.lastModified;
+      } catch (error) {
+        console.error("Error fetching last modified timestamp:", error);
+        return null;
+      }
+    }
+
     // This function fetches and displays the data from the Google Apps Script
     async function fetchAndDisplayData(month) {
       const cacheKey = `data-${month}`;
       const cachedItem = JSON.parse(localStorage.getItem(cacheKey));
-      const now = new Date().getTime();
-
-      // Check if cached data exists and is not expired
-      if (cachedItem && (now - cachedItem.timestamp < CACHE_EXPIRATION_TIME)) {
-          console.log(`Loading data for ${month} from cache.`);
-          displayTable(cachedItem.data);
-          updateLastUpdatedText(cachedItem.timestamp);
-          return;
-      }
-      
-      // If no cache or cache is expired, fetch from network
-      const gid = GID_MAP[month];
-      const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
 
       // Show a loading message
-      table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading data...</td></tr>";
+      table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Checking for updates...</td></tr>";
 
       try {
-        console.log("Attempting to fetch data from:", url);
+        const sheetLastModified = await fetchLastModifiedTimestamp();
+        
+        // If we successfully got a timestamp AND the cached timestamp matches, load from cache.
+        // Otherwise, always perform a fresh fetch.
+        if (sheetLastModified && cachedItem && cachedItem.sheetLastModified === sheetLastModified) {
+            console.log(`Loading data for ${month} from cache as sheet has not been updated.`);
+            displayTable(cachedItem.data);
+            updateLastUpdatedText(cachedItem.sheetLastModified, true);
+            return;
+        }
+        
+        // If no cache or cache is stale, fetch from network
+        const gid = GID_MAP[month];
+        const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
+        
+        table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading fresh data...</td></tr>";
+        console.log("Attempting to fetch fresh data from:", url);
+        
         const response = await fetch(url);
         
         if (!response.ok) {
-          const errorMsg = `Failed to fetch data with status code: ${response.status}. This may mean your Google Apps Script is not correctly deployed.`;
+          const errorMsg = `Failed to fetch data with status code: ${response.status}.`;
           throw new Error(errorMsg);
         }
         
@@ -215,11 +238,16 @@
           return;
         }
         
-        // Cache the new data with a timestamp
-        localStorage.setItem(cacheKey, JSON.stringify({ data: data, timestamp: now }));
+        const now = new Date().getTime();
+        // Cache the new data with both the fetch timestamp and the sheet's last modified timestamp
+        localStorage.setItem(cacheKey, JSON.stringify({
+            data: data,
+            timestamp: now,
+            sheetLastModified: sheetLastModified
+        }));
         
         displayTable(data);
-        updateLastUpdatedText(now);
+        updateLastUpdatedText(sheetLastModified, false);
 
       } catch (error) {
         console.error("Error fetching or displaying data:", error);
@@ -296,22 +324,26 @@
     async function preloadData(currentMonth) {
       console.log("Starting to preload data for other months...");
       const monthsToPreload = Object.keys(GID_MAP).filter(month => month !== currentMonth);
-      const now = new Date().getTime();
+      const sheetLastModified = await fetchLastModifiedTimestamp();
 
       for (const month of monthsToPreload) {
           const cacheKey = `data-${month}`;
           const cachedItem = JSON.parse(localStorage.getItem(cacheKey));
           
-          // Only preload if data is not already cached or is expired
-          if (!cachedItem || (now - cachedItem.timestamp >= CACHE_EXPIRATION_TIME)) {
+          // Only preload if data is not already cached or is stale
+          if (!cachedItem || cachedItem.sheetLastModified !== sheetLastModified) {
               const gid = GID_MAP[month];
               const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
               try {
                   const response = await fetch(url);
                   if (response.ok) {
                       const data = await response.json();
-                      localStorage.setItem(cacheKey, JSON.stringify({ data: data, timestamp: new Date().getTime() }));
-                      console.log(`Preloaded and cached data for ${month}.`);
+                      localStorage.setItem(cacheKey, JSON.stringify({
+                          data: data,
+                          timestamp: new Date().getTime(),
+                          sheetLastModified: sheetLastModified
+                      }));
+                      console.log(`Preloaded and cached fresh data for ${month}.`);
                   }
               } catch (error) {
                   console.warn(`Failed to preload data for ${month}.`, error);
