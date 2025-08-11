@@ -23,22 +23,10 @@
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
-  .wave {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 200%;
-    height: 50px;
-    background-size: 600px 50px;
-    animation: waveAnim 6s linear infinite;
-    opacity: 0.6;
-  }
+  .wave { position: absolute; bottom: 0; left: 0; width: 200%; height: 50px; background-size: 600px 50px; animation: waveAnim 6s linear infinite; opacity: 0.6; }
   .wave2 { animation: waveAnim 8s linear infinite reverse; opacity: 0.5; }
   .wave3 { animation: waveAnim 10s linear infinite; opacity: 0.4; }
-  @keyframes waveAnim {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
+  @keyframes waveAnim { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
   .main-content { max-width: 1200px; margin: auto; padding: 20px; }
   select {
     padding: 10px; font-size: 1rem; border: 1px solid #b3e5fc;
@@ -53,21 +41,9 @@
     box-shadow: 0 8px 20px rgba(0,150,255,0.15);
     border: 1px solid #b3e5fc;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  th, td {
-    border: 1px solid #e0f2f1;
-    padding: 10px;
-    text-align: left;
-  }
-  th {
-    background: linear-gradient(135deg, #0288d1, #26c6da);
-    color: white;
-    font-weight: 600;
-  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { border: 1px solid #e0f2f1; padding: 10px; text-align: center; vertical-align: middle; }
+  th { background: linear-gradient(135deg, #0288d1, #26c6da); color: white; font-weight: 600; }
   .row-even { background-color: rgba(224,247,250,0.5); }
   .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
   .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
@@ -122,10 +98,7 @@ const table = document.getElementById("dataTable");
 const lastUpdatedDiv = document.getElementById("lastUpdated");
 
 function updateLastUpdatedText(timestamp) {
-  if (!timestamp) { 
-    lastUpdatedDiv.textContent = "Last updated: Unknown"; 
-    return; 
-  }
+  if (!timestamp) { lastUpdatedDiv.textContent = "Last updated: Unknown"; return; }
   const date = new Date(timestamp);
   lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString()}`;
 }
@@ -139,41 +112,33 @@ async function fetchLastModifiedTimestamp() {
   } catch { return null; }
 }
 
-async function fetchAndDisplayData(month) {
-  const cacheKey = `data-${month}`;
-  const cached = JSON.parse(localStorage.getItem(cacheKey));
+function buildGroupedHeaders(headers) {
+  const topRow = document.createElement("tr");
+  const secondRow = document.createElement("tr");
+  const thirdRow = document.createElement("tr");
 
-  table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading...</td></tr>";
+  // First two cols fixed
+  topRow.innerHTML += `<th rowspan="3">${headers[0]}</th>`;
+  topRow.innerHTML += `<th rowspan="3">${headers[1]}</th>`;
 
-  const sheetLastModified = await fetchLastModifiedTimestamp();
-  updateLastUpdatedText(sheetLastModified); // always show fresh timestamp
+  // Top row main groups
+  topRow.innerHTML += `<th colspan="4">Water Meter Reading (MLD)</th>`;
+  topRow.innerHTML += `<th colspan="5">Water Meter Reading (Litters)</th>`;
 
-  if (cached && sheetLastModified && cached.sheetLastModified === sheetLastModified) {
-    displayTable(cached.data); // load cached content if timestamp matches
-    return;
-  }
+  // Second row groupings
+  secondRow.innerHTML += `<th colspan="3">CWSS-138</th>`;
+  secondRow.innerHTML += `<th rowspan="2">CWSS-238</th>`;
+  secondRow.innerHTML += `<th colspan="4">CWSS-138</th>`;
+  secondRow.innerHTML += `<th rowspan="2">CWSS-238</th>`;
 
-  await loadMonthData(month, sheetLastModified);
+  // Third row actual column names
+  headers.slice(2).forEach(h => {
+    thirdRow.innerHTML += `<th>${h}</th>`;
+  });
 
-  // Preload other months in background
-  if (sheetLastModified) {
-    Object.keys(GID_MAP).forEach(m => {
-      if (m !== month) loadMonthData(m, sheetLastModified, true);
-    });
-  }
-}
-
-async function loadMonthData(month, sheetLastModified, silent = false) {
-  const gid = GID_MAP[month];
-  try {
-    const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    localStorage.setItem(`data-${month}`, JSON.stringify({ data, sheetLastModified }));
-    if (!silent) displayTable(data);
-  } catch {
-    table.innerHTML = "<tr><td>Error loading data</td></tr>";
-  }
+  table.appendChild(topRow);
+  table.appendChild(secondRow);
+  table.appendChild(thirdRow);
 }
 
 function displayTable(data) {
@@ -182,18 +147,8 @@ function displayTable(data) {
     table.innerHTML = "<tr><td>No data available</td></tr>";
     return;
   }
-  const headers = data[0] || [];
-  const rows = data.slice(1);
-
-  const headerRow = document.createElement("tr");
-  headers.forEach(h => {
-    const th = document.createElement("th");
-    th.textContent = (h || "").trim();
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
-
-  rows.forEach((row, idx) => {
+  buildGroupedHeaders(data[0]);
+  data.slice(1).forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
     else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
@@ -205,6 +160,24 @@ function displayTable(data) {
     });
     table.appendChild(tr);
   });
+}
+
+async function fetchAndDisplayData(month) {
+  const sheetLastModified = await fetchLastModifiedTimestamp();
+  updateLastUpdatedText(sheetLastModified);
+  await loadMonthData(month);
+}
+
+async function loadMonthData(month) {
+  const gid = GID_MAP[month];
+  try {
+    const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    displayTable(data);
+  } catch {
+    table.innerHTML = "<tr><td>Error loading data</td></tr>";
+  }
 }
 
 monthSelect.addEventListener("change", () => fetchAndDisplayData(monthSelect.value));
