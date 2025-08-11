@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025</title>
@@ -35,28 +35,17 @@
   }
   .wave2 { animation: waveAnim 8s linear infinite reverse; opacity: 0.5; }
   .wave3 { animation: waveAnim 10s linear infinite; opacity: 0.4; }
-  @keyframes waveAnim { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-
-  .main-content {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
+  @keyframes waveAnim {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
   }
+  .main-content { max-width: 1200px; margin: auto; padding: 20px; }
   select {
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #b3e5fc;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    padding: 10px; font-size: 1rem; border: 1px solid #b3e5fc;
+    border-radius: 8px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     margin-bottom: 15px;
   }
-  #lastUpdated {
-    text-align: center;
-    color: #01579b;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-  }
+  #lastUpdated { text-align: center; color: #01579b; font-size: 0.9rem; margin-bottom: 15px; }
   .container {
     overflow-x: auto;
     background: rgba(255,255,255,0.95);
@@ -66,41 +55,36 @@
   }
   table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
     font-size: 13px;
   }
   th, td {
+    border: 1px solid #e0f2f1;
     padding: 10px;
     text-align: center;
-    border: 1px solid #e0f2f1;
     vertical-align: middle;
   }
-  th {
+  thead th {
     background: linear-gradient(135deg, #0288d1, #26c6da);
     color: white;
     font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 1;
+    z-index: 2;
   }
+  thead tr:nth-child(1) th { position: sticky; top: 0; }
+  thead tr:nth-child(2) th { position: sticky; top: 36px; }
+  thead tr:nth-child(3) th { position: sticky; top: 72px; }
   .row-even { background-color: rgba(224,247,250,0.5); }
   .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
   .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
-  .mld-group { background-color: #b3e5fc; color: #01579b; }
-  .litres-group { background-color: #ede7f6; color: #4a148c; }
-  @media (max-width: 600px) {
-    th, td { font-size: 11px; padding: 6px; }
-  }
 </style>
 </head>
 <body>
 
 <h2 class="water-header">
   Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025
-  <div class="wave" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
-  <div class="wave wave2" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
-  <div class="wave wave3" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
+  <div class="wave" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
+  <div class="wave wave2" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
+  <div class="wave wave3" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
 </h2>
 
 <div class="main-content">
@@ -143,10 +127,7 @@ const table = document.getElementById("dataTable");
 const lastUpdatedDiv = document.getElementById("lastUpdated");
 
 function updateLastUpdatedText(timestamp, isCached = false) {
-  if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
-    lastUpdatedDiv.textContent = "Last updated: Unknown";
-    return;
-  }
+  if (!timestamp) { lastUpdatedDiv.textContent = "Last updated: Unknown"; return; }
   const date = new Date(timestamp);
   const formatted = date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
   lastUpdatedDiv.textContent = `Last updated: ${formatted}${isCached ? " (Cached)" : ""}`;
@@ -154,138 +135,89 @@ function updateLastUpdatedText(timestamp, isCached = false) {
 
 async function fetchLastModifiedTimestamp() {
   try {
-    const url = `${APPS_SCRIPT_WEB_APP_URL}?info=lastModified`;
-    const res = await fetch(url);
+    const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?info=lastModified`);
     if (!res.ok) return null;
     const json = await res.json();
     return json.lastModified;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 async function fetchAndDisplayData(month) {
   const cacheKey = `data-${month}`;
   const cached = JSON.parse(localStorage.getItem(cacheKey));
-  table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading...</td></tr>";
-  const sheetLastModified = await fetchLastModifiedTimestamp();
+  table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Checking for updates...</td></tr>";
 
-  if (sheetLastModified && cached && cached.sheetLastModified === sheetLastModified) {
+  const sheetLastModified = await fetchLastModifiedTimestamp();
+  if (!sheetLastModified) {
+    if (cached) { displayTable(cached.data); updateLastUpdatedText(cached.sheetLastModified, true); }
+    else table.innerHTML = "<tr><td colspan='100%'>No data</td></tr>";
+    return;
+  }
+
+  if (cached && cached.sheetLastModified === sheetLastModified) {
     displayTable(cached.data);
     updateLastUpdatedText(sheetLastModified, true);
     return;
   }
 
+  await loadMonthData(month, sheetLastModified);
+
+  // Preload other months in background
+  Object.keys(GID_MAP).forEach(m => { if (m !== month) loadMonthData(m, sheetLastModified, true); });
+}
+
+async function loadMonthData(month, sheetLastModified, silent=false) {
   const gid = GID_MAP[month];
-  const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    table.innerHTML = "<tr><td>Error loading data</td></tr>";
-    return;
-  }
+  const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
+  if (!res.ok) return;
   const data = await res.json();
-  localStorage.setItem(cacheKey, JSON.stringify({ data, sheetLastModified }));
-  displayTable(data);
-  updateLastUpdatedText(sheetLastModified, false);
+  localStorage.setItem(`data-${month}`, JSON.stringify({ data, sheetLastModified }));
+  if (!silent) { displayTable(data); updateLastUpdatedText(sheetLastModified, false); }
 }
 
 function displayTable(data) {
-  const headers = data[0];
-  const rows = data.slice(1);
   table.innerHTML = "";
+  const thead = document.createElement("thead");
+  const tbody = document.createElement("tbody");
 
-  const categoryRow = document.createElement("tr");
-  const subHeaderRow = document.createElement("tr");
+  // Row 1
+  const r1 = document.createElement("tr");
+  const thMonth = document.createElement("th");
+  thMonth.textContent = data[0][0]; // Jul-25 or similar
+  thMonth.colSpan = data[0].length;
+  r1.appendChild(thMonth);
+  thead.appendChild(r1);
 
-  let i = 0;
-  while (i < headers.length) {
-    let headerText = headers[i].trim();
+  // Row 2
+  const r2 = document.createElement("tr");
+  r2.innerHTML = `<th colspan="5">Water Meter Reading (MLD)</th><th colspan="5">Water Meter Reading (Litters)</th>`;
+  thead.appendChild(r2);
 
-    if (headerText === "Water Meter Reading (MLD)") {
-      const thCat = document.createElement("th");
-      thCat.colSpan = 2;
-      thCat.textContent = "Water Meter Reading (MLD)";
-      thCat.classList.add("mld-group");
-      thCat.style.textAlign = "center";
-      categoryRow.appendChild(thCat);
+  // Row 3
+  const r3 = document.createElement("tr");
+  data[1].forEach(h => { const th=document.createElement("th"); th.textContent=h; r3.appendChild(th); });
+  thead.appendChild(r3);
 
-      const thSub1 = document.createElement("th");
-      thSub1.textContent = headers[i + 1];
-      thSub1.classList.add("mld-group");
-      thSub1.style.textAlign = "center";
-
-      const thSub2 = document.createElement("th");
-      thSub2.textContent = headers[i + 2];
-      thSub2.classList.add("mld-group");
-      thSub2.style.textAlign = "center";
-
-      subHeaderRow.appendChild(thSub1);
-      subHeaderRow.appendChild(thSub2);
-
-      i += 3;
-      continue;
-    }
-
-    if (headerText === "Water Meter Reading (Litters)") {
-      const thCat = document.createElement("th");
-      thCat.colSpan = 2;
-      thCat.textContent = "Water Meter Reading (Litters)";
-      thCat.classList.add("litres-group");
-      thCat.style.textAlign = "center";
-      categoryRow.appendChild(thCat);
-
-      const thSub1 = document.createElement("th");
-      thSub1.textContent = headers[i + 1];
-      thSub1.classList.add("litres-group");
-      thSub1.style.textAlign = "center";
-
-      const thSub2 = document.createElement("th");
-      thSub2.textContent = headers[i + 2];
-      thSub2.classList.add("litres-group");
-      thSub2.style.textAlign = "center";
-
-      subHeaderRow.appendChild(thSub1);
-      subHeaderRow.appendChild(thSub2);
-
-      i += 3;
-      continue;
-    }
-
-    const thCat = document.createElement("th");
-    thCat.rowSpan = 2;
-    thCat.textContent = headerText;
-    thCat.style.textAlign = "center";
-    categoryRow.appendChild(thCat);
-
-    i++;
-  }
-
-  table.appendChild(categoryRow);
-  table.appendChild(subHeaderRow);
-
-  rows.forEach((row, idx) => {
+  // Data rows
+  data.slice(2).forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
     else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
     else if (idx % 2 === 0) tr.className = "row-even";
-
-    row.forEach((cell) => {
-      const td = document.createElement("td");
+    row.forEach(cell => {
+      const td=document.createElement("td");
       td.textContent = cell || "";
-      td.style.textAlign = "center";
       tr.appendChild(td);
     });
-    table.appendChild(tr);
+    tbody.appendChild(tr);
   });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
 }
 
-monthSelect.addEventListener("change", () => {
-  fetchAndDisplayData(monthSelect.value);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  fetchAndDisplayData(monthSelect.value);
-});
+monthSelect.addEventListener("change", () => { fetchAndDisplayData(monthSelect.value); });
+document.addEventListener("DOMContentLoaded", () => { fetchAndDisplayData(monthSelect.value); });
 </script>
 </body>
 </html>
