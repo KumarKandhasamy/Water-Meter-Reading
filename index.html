@@ -121,10 +121,13 @@ const monthSelect = document.getElementById("monthSelect");
 const table = document.getElementById("dataTable");
 const lastUpdatedDiv = document.getElementById("lastUpdated");
 
-function updateLastUpdatedText(timestamp, isCached) {
-  if (!timestamp) { lastUpdatedDiv.textContent = "Last updated: Unknown"; return; }
+function updateLastUpdatedText(timestamp) {
+  if (!timestamp) { 
+    lastUpdatedDiv.textContent = "Last updated: Unknown"; 
+    return; 
+  }
   const date = new Date(timestamp);
-  lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString()}${isCached ? " (Cached)" : ""}`;
+  lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString()}`;
 }
 
 async function fetchLastModifiedTimestamp() {
@@ -143,9 +146,10 @@ async function fetchAndDisplayData(month) {
   table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading...</td></tr>";
 
   const sheetLastModified = await fetchLastModifiedTimestamp();
+  updateLastUpdatedText(sheetLastModified); // always show fresh timestamp
+
   if (cached && sheetLastModified && cached.sheetLastModified === sheetLastModified) {
-    displayTable(cached.data);
-    updateLastUpdatedText(sheetLastModified, true);
+    displayTable(cached.data); // load cached content if timestamp matches
     return;
   }
 
@@ -166,8 +170,8 @@ async function loadMonthData(month, sheetLastModified, silent = false) {
     if (!res.ok) return;
     const data = await res.json();
     localStorage.setItem(`data-${month}`, JSON.stringify({ data, sheetLastModified }));
-    if (!silent) { displayTable(data); updateLastUpdatedText(sheetLastModified, false); }
-  } catch (e) {
+    if (!silent) displayTable(data);
+  } catch {
     table.innerHTML = "<tr><td>Error loading data</td></tr>";
   }
 }
