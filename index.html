@@ -1,375 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-    }
-    h2 {
-      color: #1e3a8a;
-      text-align: center;
-      margin-bottom: 20px;
-      font-weight: 700;
-      font-size: 1.5rem;
-    }
-    select {
-      padding: 10px;
-      margin: 10px;
-      font-size: 1rem;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      width: calc(100% - 24px);
-      max-width: 300px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-      background-color: white;
-    }
-    #lastUpdated {
-      font-size: 0.875rem;
-      color: #6b7280;
-      margin: 10px 0 20px 0;
-      text-align: center;
-    }
-    .main-content {
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .select-wrapper {
-      text-align: center;
-      width: 100%;
-    }
-    .container {
-      overflow-x: auto;
-      width: 100%;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: 12px;
-      table-layout: auto;
-    }
-    th, td {
-      border: 1px solid #e5e7eb;
-      padding: 12px;
-      text-align: left;
-      white-space: nowrap;
-    }
-    th {
-      background-color: #2563eb;
-      color: white;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    th:first-child {
-      border-top-left-radius: 10px;
-    }
-    th:last-child {
-      border-top-right-radius: 10px;
-    }
-    .row-even {
-      background-color: #f9fafb;
-    }
-    .total-row {
-      background-color: #a3e635;
-      font-weight: bold;
-      color: #166534;
-    }
-    .average-row {
-      background-color: #fde047;
-      font-weight: bold;
-      color: #92400e;
-    }
-    .mld-group {
-      background-color: #bfdbfe;
-      color: #172554;
-    }
-    .litres-group {
-      background-color: #e9d5ff;
-      color: #4a044e;
-    }
-    @media (max-width: 600px) {
-      th, td {
-        padding: 8px;
-        font-size: 10px;
-        white-space: normal;
-      }
-    }
-  </style>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Punjai Thalavaipalyam Panjayath - Water Meter Readings 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
+    color: #0d47a1;
+  }
+  .water-header {
+    position: relative;
+    overflow: hidden;
+    padding: 20px 10px 60px 10px; /* extra bottom space for waves */
+    background: linear-gradient(135deg, #0288d1, #26c6da);
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 50px;
+    background-size: 600px 50px;
+    animation: waveAnim 6s linear infinite;
+    opacity: 0.6;
+  }
+  .wave2 {
+    animation: waveAnim 8s linear infinite reverse;
+    opacity: 0.5;
+  }
+  .wave3 {
+    animation: waveAnim 10s linear infinite;
+    opacity: 0.4;
+  }
+  @keyframes waveAnim {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .main-content {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+  }
+  select {
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #b3e5fc;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+  }
+  #lastUpdated {
+    text-align: center;
+    color: #01579b;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
+  .container {
+    overflow-x: auto;
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,150,255,0.15);
+    border: 1px solid #b3e5fc;
+  }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #e0f2f1;
+  }
+  th {
+    background: linear-gradient(135deg, #0288d1, #26c6da);
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .row-even { background-color: rgba(224,247,250,0.5); }
+  .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
+  .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
+  .mld-group { background-color: #b3e5fc; color: #01579b; }
+  .litres-group { background-color: #ede7f6; color: #4a148c; }
+  @media (max-width: 600px) {
+    th, td { font-size: 11px; padding: 6px; }
+  }
+</style>
 </head>
 <body>
 
-  <h2>Punjai Thalavaipalyam Panjayath CWSS-138/238 - Water Meter Readings 2025</h2>
+<h2 class="water-header">
+  Punjai Thalavaipalyam Panjayath - Water Meter Readings 2025
+  <div class="wave" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
+  <div class="wave wave2" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
+  <div class="wave wave3" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
+</h2>
 
-  <div class="main-content">
-    <div class="select-wrapper">
-      <label for="monthSelect">Select Month: </label>
-      <select id="monthSelect">
-        <option value="Average">2025 Average</option>
-        <option value="Jul">July</option>
-        <option value="Aug">August</option>
-        <option value="Sep">September</option>
-        <option value="Oct">October</option>
-        <option value="Nov">November</option>
-        <option value="Dec">December</option>
-      </select>
-    </div>
-
-    <div id="lastUpdated">Last updated: Loading...</div>
-    <div class="container">
-      <table id="dataTable"></table>
-    </div>
+<div class="main-content">
+  <div style="text-align:center;">
+    <label for="monthSelect">Select Month: </label>
+    <select id="monthSelect">
+      <option value="Average">2025 Average</option>
+      <option value="Jul">July</option>
+      <option value="Aug">August</option>
+      <option value="Sep">September</option>
+      <option value="Oct">October</option>
+      <option value="Nov">November</option>
+      <option value="Dec">December</option>
+    </select>
   </div>
+
+  <div id="lastUpdated">Last updated: Loading...</div>
+
+  <div class="container">
+    <table id="dataTable"></table>
+  </div>
+</div>
 
   <script>
     // This is the URL for the Google Apps Script Web App you provided
     const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
 
-    const GID_MAP = {
-      "Average": "676595147",
-      "Jul": "2038204618",
-      "Aug": "812809410",
-      "Sep": "555648873",
-      "Oct": "521072477",
-      "Nov": "1962131756",
-      "Dec": "397538262"
-    };
+const GID_MAP = {
+  "Average": "676595147",
+  "Jul": "2038204618",
+  "Aug": "812809410",
+  "Sep": "555648873",
+  "Oct": "521072477",
+  "Nov": "1962131756",
+  "Dec": "397538262"
+};
 
-    const monthSelect = document.getElementById("monthSelect");
-    const table = document.getElementById("dataTable");
-    const lastUpdatedDiv = document.getElementById("lastUpdated");
-    
-    // Function to update the last updated text, indicating if it's from cache or network
-    function updateLastUpdatedText(timestamp, isCached = false) {
-        // Check if the timestamp is a valid number before trying to create a Date object
-        if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
-            lastUpdatedDiv.textContent = "Last updated: Unknown";
-            return;
-        }
+const monthSelect = document.getElementById("monthSelect");
+const table = document.getElementById("dataTable");
+const lastUpdatedDiv = document.getElementById("lastUpdated");
 
-        const cachedDate = new Date(timestamp);
-        const formattedDate = cachedDate.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-        
-        let lastUpdatedMessage;
-        if (isCached) {
-            lastUpdatedMessage = `Last updated: ${formattedDate} (Cached)`;
-        } else {
-            lastUpdatedMessage = `Last updated: ${formattedDate}`;
-        }
-        lastUpdatedDiv.textContent = lastUpdatedMessage;
-    }
-    
-    // This function fetches the last modified timestamp from the Apps Script
-    async function fetchLastModifiedTimestamp() {
-      try {
-        const url = `${APPS_SCRIPT_WEB_APP_URL}?info=lastModified`;
-        const response = await fetch(url);
-        // Explicitly check if the response was successful
-        if (!response.ok) {
-          console.error(`Failed to get timestamp. Status: ${response.status}`);
-          return null;
-        }
-        const result = await response.json();
-        console.log("Raw timestamp response:", result); // Log the raw response for debugging
-        return result.lastModified;
-      } catch (error) {
-        console.error("Error fetching last modified timestamp:", error);
-        return null;
-      }
-    }
+function updateLastUpdatedText(timestamp, isCached = false) {
+  if (typeof timestamp !== 'number' || isNaN(timestamp) || timestamp <= 0) {
+    lastUpdatedDiv.textContent = "Last updated: Unknown";
+    return;
+  }
+  const date = new Date(timestamp);
+  const formatted = date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  lastUpdatedDiv.textContent = `Last updated: ${formatted}${isCached ? " (Cached)" : ""}`;
+}
 
-    // This function fetches and displays the data from the Google Apps Script
-    async function fetchAndDisplayData(month) {
-      const cacheKey = `data-${month}`;
-      const cachedItem = JSON.parse(localStorage.getItem(cacheKey));
+async function fetchLastModifiedTimestamp() {
+  try {
+    const url = `${APPS_SCRIPT_WEB_APP_URL}?info=lastModified`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.lastModified;
+  } catch {
+    return null;
+  }
+}
 
-      // Show a loading message
-      table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Checking for updates...</td></tr>";
+async function fetchAndDisplayData(month) {
+  const cacheKey = `data-${month}`;
+  const cached = JSON.parse(localStorage.getItem(cacheKey));
+  table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading...</td></tr>";
+  const sheetLastModified = await fetchLastModifiedTimestamp();
 
-      try {
-        const sheetLastModified = await fetchLastModifiedTimestamp();
-        
-        // If we successfully got a timestamp AND the cached timestamp matches, load from cache.
-        // Otherwise, always perform a fresh fetch.
-        if (sheetLastModified && cachedItem && cachedItem.sheetLastModified === sheetLastModified) {
-            console.log(`Loading data for ${month} from cache as sheet has not been updated.`);
-            displayTable(cachedItem.data);
-            updateLastUpdatedText(cachedItem.sheetLastModified, true);
-            return;
-        }
-        
-        // If no cache or cache is stale, fetch from network
-        const gid = GID_MAP[month];
-        const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
-        
-        table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading fresh data...</td></tr>";
-        console.log("Attempting to fetch fresh data from:", url);
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          const errorMsg = `Failed to fetch data with status code: ${response.status}.`;
-          throw new Error(errorMsg);
-        }
-        
-        const data = await response.json();
+  if (sheetLastModified && cached && cached.sheetLastModified === sheetLastModified) {
+    displayTable(cached.data);
+    updateLastUpdatedText(sheetLastModified, true);
+    return;
+  }
 
-        if (!data || data.length < 1) {
-          table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>No data available for this month.</td></tr>";
-          return;
-        }
-        
-        const now = new Date().getTime();
-        // Cache the new data with both the fetch timestamp and the sheet's last modified timestamp
-        localStorage.setItem(cacheKey, JSON.stringify({
-            data: data,
-            timestamp: now,
-            sheetLastModified: sheetLastModified
-        }));
-        
-        displayTable(data);
-        updateLastUpdatedText(sheetLastModified, false);
+  const gid = GID_MAP[month];
+  const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    table.innerHTML = "<tr><td>Error loading data</td></tr>";
+    return;
+  }
+  const data = await res.json();
+  localStorage.setItem(cacheKey, JSON.stringify({ data, sheetLastModified }));
+  displayTable(data);
+  updateLastUpdatedText(sheetLastModified, false);
+}
 
-      } catch (error) {
-        console.error("Error fetching or displaying data:", error);
-        // Display a more helpful error message for the user
-        const errorMessage = `
-          <div style='text-align:left; padding: 20px; background-color: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; color: #b91c1c; font-size: 14px;'>
-            <p><strong>Failed to load data. This is likely due to an issue with your Google Apps Script deployment.</strong></p>
-            <p>Please follow these steps to fix the issue:</p>
-            <ol>
-              <li>Go to your Google Apps Script project for the spreadsheet.</li>
-              <li>Click on "Deploy" > "Manage deployments" or "New deployment".</li>
-              <li>Ensure the deployment is a "Web app".</li>
-              <li>Under "Who has access", select "Anyone". This is a critical step.</li>
-              <li>Click "Deploy" (or "Done" to save changes) and get the new URL if it changed.</li>
-              <li>Make sure the URL in this script matches the Web App URL exactly: <code>${APPS_SCRIPT_WEB_APP_URL}</code></li>
-            </ol>
-            <p>Original error: ${error.message}</p>
-          </div>
-        `;
-        table.innerHTML = `<tr><td colspan='100%'>${errorMessage}</td></tr>`;
-      }
-    }
-    
-    // Function to render the table from data
-    function displayTable(data) {
-        // The first row of data is the header
-        const headers = data[0];
-        const rowsToDisplay = data.slice(1); // Remaining rows are data
+function displayTable(data) {
+  const headers = data[0];
+  const rows = data.slice(1);
+  table.innerHTML = "";
+  const headerRow = document.createElement("tr");
+  headers.forEach((h, i) => {
+    const th = document.createElement("th");
+    th.textContent = h.trim();
+    if (h.includes("MLD")) th.classList.add("mld-group");
+    if (h.includes("Litters")) th.classList.add("litres-group");
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow);
 
-        // Clear previous table
-        table.innerHTML = "";
-
-        // Add header row
-        const headerRowElement = document.createElement("tr");
-        headers.forEach((headerText, colIdx) => {
-          const th = document.createElement("th");
-          // Clean up "Column X" placeholders if they still appear from Apps Script `getDisplayValues`
-          let displayHeader = headerText.trim() || '';
-          if (displayHeader.match(/^Column \d+$/)) {
-               displayHeader = '';
-          }
-          th.textContent = displayHeader;
-
-          // Apply group classes based on header content
-          if (displayHeader.includes("MLD")) th.classList.add("mld-group");
-          else if (displayHeader.includes("Litters")) th.classList.add("litres-group");
-          headerRowElement.appendChild(th);
-        });
-        table.appendChild(headerRowElement);
-
-        // Add data rows
-        rowsToDisplay.forEach((row, idx) => {
-          const tr = document.createElement("tr");
-          // Apply row-even for alternating colors
-          tr.className = idx % 2 === 0 ? "row-even" : "";
-
-          // Apply special row classes for Total and Average (case-insensitive check for first cell)
-          if (row[0] && String(row[0]).toLowerCase().includes("total")) tr.className = "total-row";
-          else if (row[0] && String(row[0]).toLowerCase().includes("average")) tr.className = "average-row";
-
-          row.forEach((cellContent, colIdx) => {
-            const td = document.createElement("td");
-            td.textContent = cellContent || ""; // Handle empty cells
-            // Apply color groups to cells based on the header of their column
-            if (headers[colIdx] && headers[colIdx].includes("MLD")) td.classList.add("mld-group");
-            else if (headers[colIdx] && headers[colIdx].includes("Litters")) td.classList.add("litres-group");
-            tr.appendChild(td);
-          });
-          table.appendChild(tr);
-        });
-    }
-    
-    // Function to preload data for other months in the background
-    async function preloadData(currentMonth) {
-      console.log("Starting to preload data for other months...");
-      const monthsToPreload = Object.keys(GID_MAP).filter(month => month !== currentMonth);
-      const sheetLastModified = await fetchLastModifiedTimestamp();
-
-      for (const month of monthsToPreload) {
-          const cacheKey = `data-${month}`;
-          const cachedItem = JSON.parse(localStorage.getItem(cacheKey));
-          
-          // Only preload if data is not already cached or is stale
-          if (!cachedItem || cachedItem.sheetLastModified !== sheetLastModified) {
-              const gid = GID_MAP[month];
-              const url = `${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`;
-              try {
-                  const response = await fetch(url);
-                  if (response.ok) {
-                      const data = await response.json();
-                      localStorage.setItem(cacheKey, JSON.stringify({
-                          data: data,
-                          timestamp: new Date().getTime(),
-                          sheetLastModified: sheetLastModified
-                      }));
-                      console.log(`Preloaded and cached fresh data for ${month}.`);
-                  }
-              } catch (error) {
-                  console.warn(`Failed to preload data for ${month}.`, error);
-              }
-          } else {
-              console.log(`Data for ${month} is already fresh in cache, skipping preload.`);
-          }
-      }
-      console.log("Preloading complete.");
-    }
-
-    // Event listener for dropdown
-    monthSelect.addEventListener("change", () => {
-      const selectedMonth = monthSelect.value;
-      fetchAndDisplayData(selectedMonth);
+  rows.forEach((row, idx) => {
+    const tr = document.createElement("tr");
+    if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
+    else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
+    else if (idx % 2 === 0) tr.className = "row-even";
+    row.forEach((cell, i) => {
+      const td = document.createElement("td");
+      td.textContent = cell || "";
+      if (headers[i].includes("MLD")) td.classList.add("mld-group");
+      if (headers[i].includes("Litters")) td.classList.add("litres-group");
+      tr.appendChild(td);
     });
+    table.appendChild(tr);
+  });
+}
 
-    // Initial load when the page is loaded
-    document.addEventListener("DOMContentLoaded", () => {
-        const initialMonth = monthSelect.value;
-        fetchAndDisplayData(initialMonth).then(() => {
-            // Once the initial data is loaded and displayed, start preloading
-            preloadData(initialMonth);
-        });
-    });
-  </script>
+monthSelect.addEventListener("change", () => {
+  fetchAndDisplayData(monthSelect.value);
+});
 
+document.addEventListener("DOMContentLoaded", () => {
+  fetchAndDisplayData(monthSelect.value);
+});
+</script>
 </body>
 </html>
