@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025</title>
+<title>Punjai Thalavaipalyam Panjayath - Water Meter Readings 2025</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   body {
@@ -61,18 +61,13 @@
   th, td {
     border: 1px solid #e0f2f1;
     padding: 10px;
-    text-align: center;
-    vertical-align: middle;
+    text-align: left;
   }
-  thead th {
+  th {
     background: linear-gradient(135deg, #0288d1, #26c6da);
     color: white;
     font-weight: 600;
-    z-index: 2;
   }
-  thead tr:nth-child(1) th { position: sticky; top: 0; }
-  thead tr:nth-child(2) th { position: sticky; top: 36px; }
-  thead tr:nth-child(3) th { position: sticky; top: 72px; }
   .row-even { background-color: rgba(224,247,250,0.5); }
   .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
   .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
@@ -81,7 +76,7 @@
 <body>
 
 <h2 class="water-header">
-  Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025
+  Punjai Thalavaipalyam Panjayath - Water Meter Readings 2025
   <div class="wave" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
   <div class="wave wave2" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
   <div class="wave wave3" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
@@ -126,11 +121,10 @@ const monthSelect = document.getElementById("monthSelect");
 const table = document.getElementById("dataTable");
 const lastUpdatedDiv = document.getElementById("lastUpdated");
 
-function updateLastUpdatedText(timestamp, isCached = false) {
+function updateLastUpdatedText(timestamp, isCached) {
   if (!timestamp) { lastUpdatedDiv.textContent = "Last updated: Unknown"; return; }
   const date = new Date(timestamp);
-  const formatted = date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-  lastUpdatedDiv.textContent = `Last updated: ${formatted}${isCached ? " (Cached)" : ""}`;
+  lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString()}${isCached ? " (Cached)" : ""}`;
 }
 
 async function fetchLastModifiedTimestamp() {
@@ -145,16 +139,11 @@ async function fetchLastModifiedTimestamp() {
 async function fetchAndDisplayData(month) {
   const cacheKey = `data-${month}`;
   const cached = JSON.parse(localStorage.getItem(cacheKey));
-  table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Checking for updates...</td></tr>";
+
+  table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading...</td></tr>";
 
   const sheetLastModified = await fetchLastModifiedTimestamp();
-  if (!sheetLastModified) {
-    if (cached) { displayTable(cached.data); updateLastUpdatedText(cached.sheetLastModified, true); }
-    else table.innerHTML = "<tr><td colspan='100%'>No data</td></tr>";
-    return;
-  }
-
-  if (cached && cached.sheetLastModified === sheetLastModified) {
+  if (cached && sheetLastModified && cached.sheetLastModified === sheetLastModified) {
     displayTable(cached.data);
     updateLastUpdatedText(sheetLastModified, true);
     return;
@@ -163,61 +152,59 @@ async function fetchAndDisplayData(month) {
   await loadMonthData(month, sheetLastModified);
 
   // Preload other months in background
-  Object.keys(GID_MAP).forEach(m => { if (m !== month) loadMonthData(m, sheetLastModified, true); });
+  if (sheetLastModified) {
+    Object.keys(GID_MAP).forEach(m => {
+      if (m !== month) loadMonthData(m, sheetLastModified, true);
+    });
+  }
 }
 
-async function loadMonthData(month, sheetLastModified, silent=false) {
+async function loadMonthData(month, sheetLastModified, silent = false) {
   const gid = GID_MAP[month];
-  const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
-  if (!res.ok) return;
-  const data = await res.json();
-  localStorage.setItem(`data-${month}`, JSON.stringify({ data, sheetLastModified }));
-  if (!silent) { displayTable(data); updateLastUpdatedText(sheetLastModified, false); }
+  try {
+    const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    localStorage.setItem(`data-${month}`, JSON.stringify({ data, sheetLastModified }));
+    if (!silent) { displayTable(data); updateLastUpdatedText(sheetLastModified, false); }
+  } catch (e) {
+    table.innerHTML = "<tr><td>Error loading data</td></tr>";
+  }
 }
 
 function displayTable(data) {
   table.innerHTML = "";
-  const thead = document.createElement("thead");
-  const tbody = document.createElement("tbody");
+  if (!Array.isArray(data) || !data.length) {
+    table.innerHTML = "<tr><td>No data available</td></tr>";
+    return;
+  }
+  const headers = data[0] || [];
+  const rows = data.slice(1);
 
-  // Row 1
-  const r1 = document.createElement("tr");
-  const thMonth = document.createElement("th");
-  thMonth.textContent = data[0][0]; // Jul-25 or similar
-  thMonth.colSpan = data[0].length;
-  r1.appendChild(thMonth);
-  thead.appendChild(r1);
+  const headerRow = document.createElement("tr");
+  headers.forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = (h || "").trim();
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow);
 
-  // Row 2
-  const r2 = document.createElement("tr");
-  r2.innerHTML = `<th colspan="5">Water Meter Reading (MLD)</th><th colspan="5">Water Meter Reading (Litters)</th>`;
-  thead.appendChild(r2);
-
-  // Row 3
-  const r3 = document.createElement("tr");
-  data[1].forEach(h => { const th=document.createElement("th"); th.textContent=h; r3.appendChild(th); });
-  thead.appendChild(r3);
-
-  // Data rows
-  data.slice(2).forEach((row, idx) => {
+  rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
     else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
     else if (idx % 2 === 0) tr.className = "row-even";
-    row.forEach(cell => {
-      const td=document.createElement("td");
-      td.textContent = cell || "";
+    (row || []).forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell != null ? cell : "";
       tr.appendChild(td);
     });
-    tbody.appendChild(tr);
+    table.appendChild(tr);
   });
-
-  table.appendChild(thead);
-  table.appendChild(tbody);
 }
 
-monthSelect.addEventListener("change", () => { fetchAndDisplayData(monthSelect.value); });
-document.addEventListener("DOMContentLoaded", () => { fetchAndDisplayData(monthSelect.value); });
+monthSelect.addEventListener("change", () => fetchAndDisplayData(monthSelect.value));
+document.addEventListener("DOMContentLoaded", () => fetchAndDisplayData(monthSelect.value));
 </script>
 </body>
 </html>
