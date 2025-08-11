@@ -15,7 +15,7 @@
   .water-header {
     position: relative;
     overflow: hidden;
-    padding: 20px 10px 60px 10px; /* extra bottom space for waves */
+    padding: 20px 10px 60px 10px;
     background: linear-gradient(135deg, #0288d1, #26c6da);
     color: white;
     font-weight: 700;
@@ -33,18 +33,10 @@
     animation: waveAnim 6s linear infinite;
     opacity: 0.6;
   }
-  .wave2 {
-    animation: waveAnim 8s linear infinite reverse;
-    opacity: 0.5;
-  }
-  .wave3 {
-    animation: waveAnim 10s linear infinite;
-    opacity: 0.4;
-  }
-  @keyframes waveAnim {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
+  .wave2 { animation: waveAnim 8s linear infinite reverse; opacity: 0.5; }
+  .wave3 { animation: waveAnim 10s linear infinite; opacity: 0.4; }
+  @keyframes waveAnim { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
   .main-content {
     max-width: 1200px;
     margin: auto;
@@ -80,8 +72,9 @@
   }
   th, td {
     padding: 10px;
-    text-align: left;
+    text-align: center;
     border: 1px solid #e0f2f1;
+    vertical-align: middle;
   }
   th {
     background: linear-gradient(135deg, #0288d1, #26c6da);
@@ -131,9 +124,8 @@
   </div>
 </div>
 
-  <script>
-    // This is the URL for the Google Apps Script Web App you provided
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
+<script>
+const APPS_SCRIPT_WEB_APP_URL = "YOUR_DEPLOYED_SCRIPT_URL"; // change to your actual script URL
 
 const GID_MAP = {
   "Average": "676595147",
@@ -200,26 +192,86 @@ function displayTable(data) {
   const headers = data[0];
   const rows = data.slice(1);
   table.innerHTML = "";
-  const headerRow = document.createElement("tr");
-  headers.forEach((h, i) => {
-    const th = document.createElement("th");
-    th.textContent = h.trim();
-    if (h.includes("MLD")) th.classList.add("mld-group");
-    if (h.includes("Litters")) th.classList.add("litres-group");
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
+
+  const categoryRow = document.createElement("tr");
+  const subHeaderRow = document.createElement("tr");
+
+  let i = 0;
+  while (i < headers.length) {
+    let headerText = headers[i].trim();
+
+    if (headerText === "Water Meter Reading (MLD)") {
+      const thCat = document.createElement("th");
+      thCat.colSpan = 2;
+      thCat.textContent = "Water Meter Reading (MLD)";
+      thCat.classList.add("mld-group");
+      thCat.style.textAlign = "center";
+      categoryRow.appendChild(thCat);
+
+      const thSub1 = document.createElement("th");
+      thSub1.textContent = headers[i + 1];
+      thSub1.classList.add("mld-group");
+      thSub1.style.textAlign = "center";
+
+      const thSub2 = document.createElement("th");
+      thSub2.textContent = headers[i + 2];
+      thSub2.classList.add("mld-group");
+      thSub2.style.textAlign = "center";
+
+      subHeaderRow.appendChild(thSub1);
+      subHeaderRow.appendChild(thSub2);
+
+      i += 3;
+      continue;
+    }
+
+    if (headerText === "Water Meter Reading (Litters)") {
+      const thCat = document.createElement("th");
+      thCat.colSpan = 2;
+      thCat.textContent = "Water Meter Reading (Litters)";
+      thCat.classList.add("litres-group");
+      thCat.style.textAlign = "center";
+      categoryRow.appendChild(thCat);
+
+      const thSub1 = document.createElement("th");
+      thSub1.textContent = headers[i + 1];
+      thSub1.classList.add("litres-group");
+      thSub1.style.textAlign = "center";
+
+      const thSub2 = document.createElement("th");
+      thSub2.textContent = headers[i + 2];
+      thSub2.classList.add("litres-group");
+      thSub2.style.textAlign = "center";
+
+      subHeaderRow.appendChild(thSub1);
+      subHeaderRow.appendChild(thSub2);
+
+      i += 3;
+      continue;
+    }
+
+    const thCat = document.createElement("th");
+    thCat.rowSpan = 2;
+    thCat.textContent = headerText;
+    thCat.style.textAlign = "center";
+    categoryRow.appendChild(thCat);
+
+    i++;
+  }
+
+  table.appendChild(categoryRow);
+  table.appendChild(subHeaderRow);
 
   rows.forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
     else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
     else if (idx % 2 === 0) tr.className = "row-even";
-    row.forEach((cell, i) => {
+
+    row.forEach((cell) => {
       const td = document.createElement("td");
       td.textContent = cell || "";
-      if (headers[i].includes("MLD")) td.classList.add("mld-group");
-      if (headers[i].includes("Litters")) td.classList.add("litres-group");
+      td.style.textAlign = "center";
       tr.appendChild(td);
     });
     table.appendChild(tr);
