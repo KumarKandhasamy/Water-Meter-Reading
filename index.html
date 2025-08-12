@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025</title>
+<title>Punjai Thalavaipalyam Panjayath - Water Meter Readings 2025</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   body {
@@ -52,7 +52,7 @@
 <body>
 
 <h2 class="water-header">
-  Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025
+  Punjai Thalavaipalyam Panjayath - Water Meter Readings 2025
   <div class="wave" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
   <div class="wave wave2" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
   <div class="wave wave3" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
@@ -79,10 +79,8 @@
   </div>
 </div>
 
-  <script>
-    // This is the URL for the Google Apps Script Web App you provided
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
-
+<script>
+const APPS_SCRIPT_WEB_APP_URL = "YOUR_DEPLOYED_SCRIPT_URL";
 const GID_MAP = {
   "Average": "676595147",
   "Jul": "2038204618",
@@ -112,34 +110,41 @@ async function fetchLastModifiedTimestamp() {
   } catch { return null; }
 }
 
-function displayTable(data, monthLabel) {
+function displayTable(data) {
   table.innerHTML = "";
   if (!Array.isArray(data) || !data.length) {
     table.innerHTML = "<tr><td>No data available</td></tr>";
     return;
   }
 
-  // Row 1: Month over S.No + Date, MLD & Litters headers
-  let tr1 = document.createElement("tr");
+  // ===== HEADER MERGING =====
+  const tr1 = document.createElement("tr");
   tr1.innerHTML = `
-    <th rowspan="2" colspan="2" style="text-align:center;">${monthLabel}</th>
-    <th colspan="4">Water Meter Reading (MLD)</th>
-    <th colspan="6">Water Meter Reading (Litters)</th>
+    <th rowspan="3" colspan="2" style="text-align:center;">${data[0][0]}</th>
+    <th colspan="4">${data[0][2]}</th>
+    <th colspan="6">${data[0][6]}</th>
   `;
   table.appendChild(tr1);
 
-  // Row 2: CWSS groups
-  let tr2 = document.createElement("tr");
+  const tr2 = document.createElement("tr");
   tr2.innerHTML = `
-    <th colspan="3">CWSS-138</th>
-    <th>CWSS-238</th>
-    <th colspan="4">CWSS-138</th>
-    <th>CWSS-238</th>
+    <th colspan="3">${data[1][2]}</th>
+    <th>${data[1][5]}</th>
+    <th colspan="4">${data[1][6]}</th>
+    <th>${data[1][10]}</th>
   `;
   table.appendChild(tr2);
 
-  // Remaining rows from sheet (your subheaders + data)
-  data.slice(2).forEach((row, idx) => {
+  const tr3 = document.createElement("tr");
+  data[2].slice(2).forEach(cell => {
+    const th = document.createElement("th");
+    th.textContent = cell;
+    tr3.appendChild(th);
+  });
+  table.appendChild(tr3);
+
+  // ===== DATA ROWS =====
+  data.slice(3).forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
     else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
@@ -161,7 +166,7 @@ async function fetchAndDisplayData(month) {
     const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
     if (!res.ok) return;
     const data = await res.json();
-    displayTable(data, month + "-25");
+    displayTable(data);
   } catch {
     table.innerHTML = "<tr><td>Error loading data</td></tr>";
   }
