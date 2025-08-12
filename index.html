@@ -112,33 +112,31 @@ async function fetchLastModifiedTimestamp() {
   } catch { return null; }
 }
 
-function buildGroupedHeaders(headers) {
-  const topRow = document.createElement("tr");
-  const secondRow = document.createElement("tr");
-  const thirdRow = document.createElement("tr");
-
-  // First two cols fixed
-  topRow.innerHTML += `<th rowspan="3">${headers[0]}</th>`;
-  topRow.innerHTML += `<th rowspan="3">${headers[1]}</th>`;
-
-  // Top row main groups
-  topRow.innerHTML += `<th colspan="4">Water Meter Reading (MLD)</th>`;
-  topRow.innerHTML += `<th colspan="5">Water Meter Reading (Litters)</th>`;
-
-  // Second row groupings
-  secondRow.innerHTML += `<th colspan="3">CWSS-138</th>`;
-  secondRow.innerHTML += `<th rowspan="2">CWSS-238</th>`;
-  secondRow.innerHTML += `<th colspan="4">CWSS-138</th>`;
-  secondRow.innerHTML += `<th rowspan="2">CWSS-238</th>`;
-
-  // Third row actual column names
-  headers.slice(2).forEach(h => {
-    thirdRow.innerHTML += `<th>${h}</th>`;
-  });
-
-  table.appendChild(topRow);
-  table.appendChild(secondRow);
-  table.appendChild(thirdRow);
+function renderMergedRow(rowData) {
+  const tr = document.createElement("tr");
+  let i = 0;
+  while (i < rowData.length) {
+    const cellText = rowData[i] ? rowData[i].trim() : "";
+    if (!cellText) {
+      const td = document.createElement("th");
+      td.textContent = "";
+      tr.appendChild(td);
+      i++;
+      continue;
+    }
+    let colspan = 1;
+    while (i + colspan < rowData.length && rowData[i + colspan] && rowData[i + colspan].trim() === cellText) {
+      colspan++;
+    }
+    const th = document.createElement("th");
+    th.textContent = cellText;
+    th.colSpan = colspan;
+    th.style.textAlign = "center";
+    th.style.verticalAlign = "middle";
+    tr.appendChild(th);
+    i += colspan;
+  }
+  table.appendChild(tr);
 }
 
 function displayTable(data) {
@@ -147,13 +145,19 @@ function displayTable(data) {
     table.innerHTML = "<tr><td>No data available</td></tr>";
     return;
   }
-  buildGroupedHeaders(data[0]);
-  data.slice(1).forEach((row, idx) => {
+
+  // First 3 rows with merge logic
+  for (let r = 0; r < 3 && r < data.length; r++) {
+    renderMergedRow(data[r]);
+  }
+
+  // Remaining rows normal
+  data.slice(3).forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
     else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
     else if (idx % 2 === 0) tr.className = "row-even";
-    (row || []).forEach(cell => {
+    row.forEach(cell => {
       const td = document.createElement("td");
       td.textContent = cell != null ? cell : "";
       tr.appendChild(td);
@@ -165,10 +169,6 @@ function displayTable(data) {
 async function fetchAndDisplayData(month) {
   const sheetLastModified = await fetchLastModifiedTimestamp();
   updateLastUpdatedText(sheetLastModified);
-  await loadMonthData(month);
-}
-
-async function loadMonthData(month) {
   const gid = GID_MAP[month];
   try {
     const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
