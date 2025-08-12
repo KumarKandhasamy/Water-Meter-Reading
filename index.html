@@ -119,10 +119,10 @@ function displayTable(data, monthLabel) {
     return;
   }
 
-  // Row 1: Month label (merged vertically) + MLD & Litters headers
+  // Row 1: Month over S.No + Date, MLD & Litters headers
   let tr1 = document.createElement("tr");
   tr1.innerHTML = `
-    <th rowspan="3" colspan="2" style="text-align:center;">${monthLabel}</th>
+    <th rowspan="2" colspan="2" style="text-align:center;">${monthLabel}</th>
     <th colspan="4">Water Meter Reading (MLD)</th>
     <th colspan="6">Water Meter Reading (Litters)</th>
   `;
@@ -138,17 +138,8 @@ function displayTable(data, monthLabel) {
   `;
   table.appendChild(tr2);
 
-  // Row 3: Actual subheaders from Excel
-  let tr3 = document.createElement("tr");
-  data[2].slice(2).forEach(h => {
-    let th = document.createElement("th");
-    th.textContent = h;
-    tr3.appendChild(th);
-  });
-  table.appendChild(tr3);
-
-  // Data rows starting from row 4
-  data.slice(3).forEach((row, idx) => {
+  // Remaining rows from sheet (your subheaders + data)
+  data.slice(2).forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
     else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
