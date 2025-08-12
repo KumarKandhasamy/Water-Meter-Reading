@@ -23,17 +23,42 @@
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
-  .wave { position: absolute; bottom: 0; left: 0; width: 200%; height: 50px; background-size: 600px 50px; animation: waveAnim 6s linear infinite; opacity: 0.6; }
+  .wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 50px;
+    background-size: 600px 50px;
+    animation: waveAnim 6s linear infinite;
+    opacity: 0.6;
+  }
   .wave2 { animation: waveAnim 8s linear infinite reverse; opacity: 0.5; }
   .wave3 { animation: waveAnim 10s linear infinite; opacity: 0.4; }
-  @keyframes waveAnim { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  .main-content { max-width: 1200px; margin: auto; padding: 20px; }
+  @keyframes waveAnim {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .main-content {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+  }
   select {
-    padding: 10px; font-size: 1rem; border: 1px solid #b3e5fc;
-    border-radius: 8px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #b3e5fc;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     margin-bottom: 15px;
   }
-  #lastUpdated { text-align: center; color: #01579b; font-size: 0.9rem; margin-bottom: 15px; }
+  #lastUpdated {
+    text-align: center;
+    color: #01579b;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
   .container {
     overflow-x: auto;
     background: rgba(255,255,255,0.95);
@@ -41,12 +66,41 @@
     box-shadow: 0 8px 20px rgba(0,150,255,0.15);
     border: 1px solid #b3e5fc;
   }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { border: 1px solid #e0f2f1; padding: 10px; text-align: center; vertical-align: middle; }
-  th { background: linear-gradient(135deg, #0288d1, #26c6da); color: white; font-weight: 600; }
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #e0f2f1;
+  }
+  th {
+    background: linear-gradient(135deg, #0288d1, #26c6da);
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
   .row-even { background-color: rgba(224,247,250,0.5); }
   .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
   .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
+
+  /* Shimmer effect for loading */
+  .shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+    height: 14px;
+    border-radius: 4px;
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
 </style>
 </head>
 <body>
@@ -93,89 +147,142 @@ const GID_MAP = {
   "Dec": "397538262"
 };
 
-const monthSelect = document.getElementById("monthSelect");
-const table = document.getElementById("dataTable");
-const lastUpdatedDiv = document.getElementById("lastUpdated");
-
-function updateLastUpdatedText(timestamp) {
-  if (!timestamp) { lastUpdatedDiv.textContent = "Last updated: Unknown"; return; }
-  const date = new Date(timestamp);
-  lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString()}`;
-}
-
 async function fetchLastModifiedTimestamp() {
   try {
     const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?info=lastModified`);
     if (!res.ok) return null;
     const json = await res.json();
     return json.lastModified;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-function displayTable(data) {
-  table.innerHTML = "";
-  if (!Array.isArray(data) || !data.length) {
-    table.innerHTML = "<tr><td>No data available</td></tr>";
+function updateLastUpdatedText(timestamp) {
+  if (!timestamp) {
+    document.getElementById("lastUpdated").textContent = "Last updated: Unknown";
     return;
   }
+  const date = new Date(timestamp);
+  document.getElementById("lastUpdated").textContent =
+    "Last updated: " + date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+}
 
-  // ===== HEADER MERGING =====
-  const tr1 = document.createElement("tr");
-  tr1.innerHTML = `
-    <th rowspan="3" colspan="2" style="text-align:center;">${data[0][0]}</th>
-    <th colspan="4">${data[0][2]}</th>
-    <th colspan="6">${data[0][6]}</th>
-  `;
-  table.appendChild(tr1);
+function mergeCells(rowArray, startCol) {
+  let merged = [];
+  let i = startCol;
+  while (i < rowArray.length) {
+    let value = rowArray[i];
+    let colspan = 1;
+    for (let j = i + 1; j < rowArray.length; j++) {
+      if (rowArray[j] === value) colspan++;
+      else break;
+    }
+    merged.push({ text: value, colspan });
+    i += colspan;
+  }
+  return merged;
+}
 
-  const tr2 = document.createElement("tr");
-  tr2.innerHTML = `
-    <th colspan="3">${data[1][2]}</th>
-    <th>${data[1][5]}</th>
-    <th colspan="4">${data[1][6]}</th>
-    <th>${data[1][10]}</th>
-  `;
-  table.appendChild(tr2);
-
-  const tr3 = document.createElement("tr");
-  data[2].slice(2).forEach(cell => {
-    const th = document.createElement("th");
-    th.textContent = cell;
-    tr3.appendChild(th);
-  });
-  table.appendChild(tr3);
-
-  // ===== DATA ROWS =====
-  data.slice(3).forEach((row, idx) => {
+function showShimmer() {
+  const table = document.getElementById("dataTable");
+  table.innerHTML = "";
+  for (let i = 0; i < 5; i++) {
     const tr = document.createElement("tr");
-    if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
-    else if (row[0] && /average/i.test(row[0])) tr.className = "average-row";
-    else if (idx % 2 === 0) tr.className = "row-even";
-    row.forEach(cell => {
+    for (let j = 0; j < 8; j++) {
       const td = document.createElement("td");
-      td.textContent = cell != null ? cell : "";
+      td.innerHTML = '<div class="shimmer"></div>';
       tr.appendChild(td);
-    });
+    }
     table.appendChild(tr);
+  }
+}
+
+function renderTable(data) {
+  const table = document.getElementById("dataTable");
+  table.innerHTML = "";
+
+  const header1 = data[0];
+  const header2 = data[1];
+  const header3 = data[2];
+
+  const thead = document.createElement("thead");
+
+  // Row 1
+  const row1 = document.createElement("tr");
+  const monthCell = document.createElement("th");
+  monthCell.textContent = header1[0];
+  monthCell.rowSpan = 3;
+  monthCell.colSpan = 2;
+  monthCell.style.verticalAlign = "middle";
+  row1.appendChild(monthCell);
+  mergeCells(header1, 2).forEach(cell => {
+    const th = document.createElement("th");
+    th.textContent = cell.text;
+    th.colSpan = cell.colspan;
+    th.style.verticalAlign = "middle";
+    row1.appendChild(th);
   });
+  thead.appendChild(row1);
+
+  // Row 2
+  const row2 = document.createElement("tr");
+  mergeCells(header2, 2).forEach(cell => {
+    const th = document.createElement("th");
+    th.textContent = cell.text;
+    th.colSpan = cell.colspan;
+    th.style.verticalAlign = "middle";
+    row2.appendChild(th);
+  });
+  thead.appendChild(row2);
+
+  // Row 3
+  const row3 = document.createElement("tr");
+  for (let i = 2; i < header3.length; i++) {
+    const th = document.createElement("th");
+    th.textContent = header3[i];
+    row3.appendChild(th);
+  }
+  thead.appendChild(row3);
+
+  table.appendChild(thead);
+
+  // Body
+  const tbody = document.createElement("tbody");
+  for (let r = 3; r < data.length; r++) {
+    const tr = document.createElement("tr");
+    if (r % 2 === 0) tr.className = "row-even";
+    for (let c = 0; c < data[r].length; c++) {
+      const td = document.createElement("td");
+      td.textContent = data[r][c];
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
 }
 
 async function fetchAndDisplayData(month) {
-  const sheetLastModified = await fetchLastModifiedTimestamp();
-  updateLastUpdatedText(sheetLastModified);
+  showShimmer();
+  const timestamp = await fetchLastModifiedTimestamp();
+  updateLastUpdatedText(timestamp);
   const gid = GID_MAP[month];
-  try {
-    const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
-    if (!res.ok) return;
-    const data = await res.json();
-    displayTable(data);
-  } catch {
-    table.innerHTML = "<tr><td>Error loading data</td></tr>";
+  const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
+  if (!res.ok) {
+    document.getElementById("dataTable").innerHTML = "<tr><td>Error loading data</td></tr>";
+    return;
   }
+  const data = await res.json();
+  renderTable(data);
 }
 
-monthSelect.addEventListener("change", () => fetchAndDisplayData(monthSelect.value));
-document.addEventListener("DOMContentLoaded", () => fetchAndDisplayData(monthSelect.value));
+document.getElementById("monthSelect").addEventListener("change", () => {
+  fetchAndDisplayData(document.getElementById("monthSelect").value);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  fetchAndDisplayData(document.getElementById("monthSelect").value);
+});
 </script>
 </body>
 </html>
