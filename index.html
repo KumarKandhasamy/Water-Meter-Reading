@@ -1,135 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --blue-1:#0288d1;
-    --blue-2:#26c6da;
-    --muted:#e0f2f7;
-    --accent:#01579b;
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
+    color: #0d47a1;
   }
-  body{
-    margin:0;
-    font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;
-    background: linear-gradient(135deg,#e6f9ff 0%, #ffffff 100%);
-    color:var(--accent);
+  .water-header {
+    position: relative;
+    overflow: hidden;
+    padding: 20px 10px 60px 10px;
+    background: linear-gradient(135deg, #0288d1, #26c6da);
+    color: white;
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
-
-  /* header */
-  .water-header{
-    position:relative;
-    padding:20px 12px 60px;
-    color:white;
-    text-align:center;
-    background: linear-gradient(135deg,var(--blue-1), var(--blue-2));
-    box-shadow:0 6px 18px rgba(2,136,209,0.12);
-    font-weight:700;
-    font-size:1.25rem;
+  .wave {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 50px;
+    background-size: 600px 50px;
+    animation: waveAnim 6s linear infinite;
+    opacity: 0.6;
   }
-  .wave{ position:absolute; left:0; bottom:0; width:200%; height:50px; background-size:600px 50px; opacity:0.6; animation:wave 8s linear infinite; }
-  .wave2{ animation-duration:10s; opacity:0.45; }
-  .wave3{ animation-duration:12s; opacity:0.35; }
-  @keyframes wave { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-
-  .main-content{ max-width:1200px; margin:20px auto; padding:0 16px; box-sizing:border-box; }
-
-  /* controls */
-  .controls{ text-align:center; margin-bottom:12px; }
-  select{ padding:8px 12px; border-radius:8px; border:1px solid #cfeff7; background:#fff; box-shadow:0 2px 6px rgba(2,136,209,0.04); font-size:1rem; }
-
-  #lastUpdated{ text-align:center; color:#0b66a3; margin:10px 0; font-size:0.9rem; }
-
-  /* table wrapper */
-  .container{
-    background:rgba(255,255,255,0.98);
-    border-radius:12px;
-    overflow:auto;
-    border:1px solid rgba(3,169,244,0.08);
-    box-shadow:0 8px 30px rgba(2,136,209,0.06);
+  .wave2 { animation: waveAnim 8s linear infinite reverse; opacity: 0.5; }
+  .wave3 { animation: waveAnim 10s linear infinite; opacity: 0.4; }
+  @keyframes waveAnim {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
   }
-
-  table{
-    width:100%;
-    border-collapse:separate;
-    border-spacing:0;
-    font-size:13px;
-    min-width:900px; /* allow horizontal scroll on small screens */
+  .main-content { max-width: 1200px; margin: auto; padding: 20px; }
+  select {
+    padding: 10px; font-size: 1rem; border: 1px solid #b3e5fc;
+    border-radius: 8px; background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 15px;
   }
-  thead th, tbody td{
-    padding:10px 8px;
-    border:1px solid #e6f2f6;
-    vertical-align:middle;
-    text-align:center;
+  #lastUpdated { text-align: center; color: #01579b; font-size: 0.9rem; margin-bottom: 15px; }
+  .container {
+    overflow-x: auto; background: rgba(255,255,255,0.95);
+    border-radius: 12px; box-shadow: 0 8px 20px rgba(0,150,255,0.15);
+    border: 1px solid #b3e5fc;
   }
-
-  thead th{
-    background: linear-gradient(135deg,var(--blue-1), var(--blue-2));
-    color:white;
-    font-weight:600;
-    position:sticky;
-    top:0; /* simpler sticky for whole header block */
-    z-index:5;
+  table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    font-size: 13px;
   }
-
-  tbody tr.row-even td{ background:#f6fcff; }
-  .total-row td{ background: linear-gradient(135deg,#e9ffb3,#b7ff59); color:#164d1b; font-weight:700; }
-  .average-row td{ background: linear-gradient(135deg,#fff1a8,#ffd54f); color:#7a3e00; font-weight:700; }
-
-  /* shimmer placeholder */
-  .shimmer{ height:14px; border-radius:6px; background:linear-gradient(90deg,#e6f2f7 25%, #d7eefa 50%, #e6f2f7 75%); background-size:200% 100%; animation:shimmer 1.1s linear infinite; }
-  @keyframes shimmer{ 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-
-  /* small screens adjustments */
-  @media (max-width:700px){
-    thead th, tbody td{ padding:8px 6px; font-size:12px; }
-    .water-header{ font-size:1.05rem; padding-bottom:50px; }
+  th, td {
+    padding: 8px; text-align: center; border: 1px solid #e0f2f1;
   }
+  th {
+    background: linear-gradient(135deg, #0288d1, #26c6da);
+    color: white; font-weight: 600; position: sticky; top: 0; z-index: 2;
+  }
+  .row-even { background-color: rgba(224,247,250,0.5); }
+  .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
+  .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
 </style>
 </head>
 <body>
 
-  <header class="water-header">
+<h2 class="water-header">
   Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025
-    <div class="wave" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
-    <div class="wave wave2" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
-    <div class="wave wave3" style="background:url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
-  </header>
+  <div class="wave" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
+  <div class="wave wave2" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
+  <div class="wave wave3" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
+</h2>
 
-  <main class="main-content">
-    <div class="controls">
-      <label for="monthSelect">Select Month: </label>
-      <select id="monthSelect">
-        <option value="Average">2025 Average</option>
-        <option value="Jul">July</option>
-        <option value="Aug">Aug</option>
-        <option value="Sep">Sep</option>
-        <option value="Oct">Oct</option>
-        <option value="Nov">Nov</option>
-        <option value="Dec">Dec</option>
-      </select>
-    </div>
+<div class="main-content">
+  <div style="text-align:center;">
+    <label for="monthSelect">Select Month: </label>
+    <select id="monthSelect">
+      <option value="Average">2025 Average</option>
+      <option value="Jul">July</option>
+      <option value="Aug">August</option>
+      <option value="Sep">September</option>
+      <option value="Oct">October</option>
+      <option value="Nov">November</option>
+      <option value="Dec">December</option>
+    </select>
+  </div>
 
-    <div id="lastUpdated">Last updated: —</div>
+  <div id="lastUpdated">Last updated: Loading...</div>
 
-    <div class="container">
-      <table id="dataTable" aria-label="Water meter readings table"></table>
-    </div>
-  </main>
+  <div class="container">
+    <table id="dataTable"></table>
+  </div>
+</div>
 
-<script>
-/*
-  Dynamic header merging algorithm (reads first 3 rows from sheet)
-  - No hardcoded labels
-  - Detects contiguous merged areas (sheet returns top-left value and '' in merged cells)
-  - Creates rowspan for month if the sheet shows vertical merge
-*/
-
-const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
-
+  <script>
+    // This is the URL for the Google Apps Script Web App you provided
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
 
 const GID_MAP = {
   "Average": "676595147",
@@ -141,227 +111,109 @@ const GID_MAP = {
   "Dec": "397538262"
 };
 
-const monthSelect = document.getElementById('monthSelect');
-const table = document.getElementById('dataTable');
-const lastUpdatedDiv = document.getElementById('lastUpdated');
+const monthSelect = document.getElementById("monthSelect");
+const table = document.getElementById("dataTable");
+const lastUpdatedDiv = document.getElementById("lastUpdated");
 
-/* fetch the "last modified" timestamp from your Apps Script (endpoint responds to ?info=lastModified) */
-async function fetchLastModifiedTimestamp(){
+function updateLastUpdatedText(timestamp) {
+  if (!timestamp) {
+    lastUpdatedDiv.textContent = "Last updated: Unknown";
+    return;
+  }
+  const date = new Date(timestamp);
+  const formatted = date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  lastUpdatedDiv.textContent = `Last updated: ${formatted}`;
+}
+
+async function fetchLastModifiedTimestamp() {
   try {
     const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?info=lastModified`);
-    if(!res.ok) return null;
-    const j = await res.json();
-    return j.lastModified || null;
-  } catch(e){
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.lastModified;
+  } catch {
     return null;
   }
 }
 
-/* small utility: show shimmer while loading */
-function showShimmer(rows=6, cols=8){
-  table.innerHTML = '';
-  for(let r=0;r<rows;r++){
-    const tr = document.createElement('tr');
-    for(let c=0;c<cols;c++){
-      const td = document.createElement('td');
-      const div = document.createElement('div');
-      div.className = 'shimmer';
-      td.appendChild(div);
-      tr.appendChild(td);
-    }
-    table.appendChild(tr);
-  }
-}
+async function fetchAndDisplayData(month) {
+  table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading...</td></tr>";
+  const sheetLastModified = await fetchLastModifiedTimestamp();
+  updateLastUpdatedText(sheetLastModified);
 
-/* compute groups in row between start..end (end exclusive)
-   Treat a non-empty cell as a start; include following empty ('') or identical cells in the colspan.
-   Returns array of { text, start, colspan } */
-function computeGroups(row, start, end){
-  const groups = [];
-  let i = start;
-  while(i < end){
-    // find next non-empty cell index k
-    let k = i;
-    while(k < end && (row[k] == null || String(row[k]).trim() === '')) k++;
-    if(k >= end) break;
-    const text = String(row[k]).trim();
-    // count how many following cells are empty or same text (these indicate merged region)
-    let colspan = 1;
-    let j = k + 1;
-    while(j < end){
-      const cell = row[j];
-      if(cell == null || String(cell).trim() === '' || String(cell).trim() === text){
-        colspan++; j++; continue;
-      }
-      break;
-    }
-    groups.push({ text, start: k, colspan });
-    i = k + colspan;
-  }
-  return groups;
-}
-
-/* Render the table given the sheet data (2D array of strings)
-   Expected: first 3 rows = header rows. rows thereafter = body
-*/
-function renderMergedHeaderTable(data){
-  table.innerHTML = '';
-  if(!Array.isArray(data) || data.length < 3){
-    table.innerHTML = '<tr><td style="padding:12px">No data available</td></tr>';
+  const gid = GID_MAP[month];
+  const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
+  if (!res.ok) {
+    table.innerHTML = "<tr><td>Error loading data</td></tr>";
     return;
   }
+  const data = await res.json();
+  displayTable(data);
+}
 
-  // ensure header rows are same length — compute max columns across first 3 header rows
-  const headerRows = [data[0].slice(), data[1].slice(), data[2].slice()];
-  const maxCols = Math.max(headerRows[0].length, headerRows[1].length, headerRows[2].length);
+function displayTable(data) {
+  table.innerHTML = "";
+  const headerRowsCount = 3;
+  const thead = document.createElement("thead");
 
-  // pad with empty strings
-  for(let r=0;r<3;r++){
-    while(headerRows[r].length < maxCols) headerRows[r].push('');
-  }
+  let skipMap = Array(headerRowsCount).fill(0).map(() => []);
 
-  const header0 = headerRows[0];
-  const header1 = headerRows[1];
-  const header2 = headerRows[2];
+  for (let r = 0; r < headerRowsCount; r++) {
+    const tr = document.createElement("tr");
+    for (let c = 0; c < data[r].length; c++) {
+      if (skipMap[r][c]) continue;
+      const cellValue = data[r][c] || "";
+      if (!cellValue) continue;
 
-  // compute top-level groups from row0 across 0..maxCols
-  const topGroups = computeGroups(header0, 0, maxCols);
+      let rowspan = 1, colspan = 1;
 
-  // If the leftmost top group starts beyond column 0 (rare), treat columns before as empty singletons
-  // but normally topGroups[0].start should be 0 (month).
-  // Detect which topGroup(s) represent the "month area" (vertical merge). We'll mark those where header1[start] and header2[start] are blank => vertical merge.
-  for(const g of topGroups){
-    const s = g.start;
-    g.rowspan3 = ( (header1[s] == null || String(header1[s]).trim() === '') &&
-                   (header2[s] == null || String(header2[s]).trim() === '') );
-    // note: rowSpan 3 detection - if true we will set rowspan=3 for that top group (month)
-  }
-
-  // build THEAD (3 rows)
-  const thead = document.createElement('thead');
-
-  // Row 0: render each topGroup; groups with rowspan3 will receive rowspan=3
-  const tr0 = document.createElement('tr');
-  for(const g of topGroups){
-    const th = document.createElement('th');
-    th.textContent = g.text || '';
-    th.colSpan = g.colspan;
-    if(g.rowspan3) th.rowSpan = 3;
-    th.style.textAlign = 'center';
-    th.style.verticalAlign = 'middle';
-    tr0.appendChild(th);
-  }
-  thead.appendChild(tr0);
-
-  // Row 1: For each topGroup, if it had rowspan3 skip (topGroup claimed full height)
-  // else compute its subgroups from header1 within [start, start+colspan)
-  const tr1 = document.createElement('tr');
-  for(const g of topGroups){
-    if(g.rowspan3){
-      // topGroup occupies all header rows -> skip producing second-row th cells for its covered columns
-      continue;
-    }
-    const start = g.start;
-    const end = g.start + g.colspan;
-    const sub = computeGroups(header1, start, end);
-    if(sub.length === 0){
-      // fallback: create individual th for each column in the range (if header1 was empty)
-      for(let c = start; c < end; c++){
-        const th = document.createElement('th');
-        th.textContent = header1[c] || '';
-        th.style.textAlign = 'center';
-        th.style.verticalAlign = 'middle';
-        tr1.appendChild(th);
+      // Calculate rowspan
+      for (let rr = r + 1; rr < headerRowsCount; rr++) {
+        if (data[rr][c] === "" || data[rr][c] === cellValue) {
+          rowspan++;
+          skipMap[rr][c] = true;
+        } else break;
       }
-    } else {
-      for(const sgrp of sub){
-        const th = document.createElement('th');
-        th.textContent = sgrp.text || '';
-        th.colSpan = sgrp.colspan;
-        th.style.textAlign = 'center';
-        th.style.verticalAlign = 'middle';
-        tr1.appendChild(th);
+
+      // Calculate colspan
+      for (let cc = c + 1; cc < data[r].length; cc++) {
+        if (data[r][cc] === "" || data[r][cc] === cellValue) {
+          colspan++;
+          skipMap[r][cc] = true;
+        } else break;
       }
-    }
-  }
-  thead.appendChild(tr1);
 
-  // Row 2: print header2 (row index 2 from sheet) but skip columns that are covered by topGroup.rowspan3
-  const tr2 = document.createElement('tr');
-  // build a fast set of columns skipped due to rowspan3 topGroup(s)
-  const skipCol = new Array(maxCols).fill(false);
-  for(const g of topGroups){
-    if(g.rowspan3){
-      for(let c=g.start; c<g.start+g.colspan; c++) skipCol[c] = true;
+      const th = document.createElement("th");
+      th.textContent = cellValue;
+      if (rowspan > 1) th.rowSpan = rowspan;
+      if (colspan > 1) th.colSpan = colspan;
+      tr.appendChild(th);
     }
+    thead.appendChild(tr);
   }
-  for(let c=0; c<maxCols; c++){
-    if(skipCol[c]) continue;
-    const th = document.createElement('th');
-    th.textContent = header2[c] || '';
-    th.style.textAlign = 'center';
-    th.style.verticalAlign = 'middle';
-    tr2.appendChild(th);
-  }
-  thead.appendChild(tr2);
-
   table.appendChild(thead);
 
-  // BODY: rows from data[3] onwards — ensure every row has at least maxCols items (pad with '')
-  const tbody = document.createElement('tbody');
-  for(let r=3; r<data.length; r++){
-    const row = data[r] || [];
-    // pad row up to maxCols (so body aligns)
-    while(row.length < maxCols) row.push('');
-    const tr = document.createElement('tr');
-
-    // optional classing: total/average detection in first column
-    const firstCell = row[0] != null ? String(row[0]) : '';
-    if(/total/i.test(firstCell)) tr.className = 'total-row';
-    else if(/average/i.test(firstCell)) tr.className = 'average-row';
-    else if((r-3) % 2 === 0) tr.className = 'row-even';
-
-    for(let c=0; c<maxCols; c++){
-      const td = document.createElement('td');
-      td.textContent = row[c] != null ? row[c] : '';
+  const tbody = document.createElement("tbody");
+  for (let r = headerRowsCount; r < data.length; r++) {
+    const tr = document.createElement("tr");
+    if (r % 2 === 0) tr.classList.add("row-even");
+    data[r].forEach(cell => {
+      const td = document.createElement("td");
+      td.textContent = cell;
       tr.appendChild(td);
-    }
+    });
     tbody.appendChild(tr);
   }
-
   table.appendChild(tbody);
 }
 
-/* fetch sheet data from Apps Script web app and render */
-async function fetchAndDisplayData(monthKey){
-  try {
-    showShimmer(6, 10);
-    // always fetch latest timestamp and show
-    const ts = await fetchLastModifiedTimestamp();
-    if(ts) {
-      const d = new Date(ts);
-      lastUpdatedDiv.textContent = 'Last updated: ' + d.toLocaleString('en-US', { dateStyle:'medium', timeStyle:'short' });
-    } else {
-      lastUpdatedDiv.textContent = 'Last updated: Unknown';
-    }
+monthSelect.addEventListener("change", () => {
+  fetchAndDisplayData(monthSelect.value);
+});
 
-    const gid = GID_MAP[monthKey];
-    const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
-    if(!res.ok){
-      table.innerHTML = '<tr><td style="padding:12px">Failed to fetch sheet data</td></tr>';
-      return;
-    }
-    const data = await res.json();
-    renderMergedHeaderTable(data);
-  } catch(err){
-    console.error(err);
-    table.innerHTML = '<tr><td style="padding:12px">Error loading data</td></tr>';
-  }
-}
-
-/* wire up */
-monthSelect.addEventListener('change', ()=> fetchAndDisplayData(monthSelect.value));
-document.addEventListener('DOMContentLoaded', ()=> fetchAndDisplayData(monthSelect.value));
+document.addEventListener("DOMContentLoaded", () => {
+  fetchAndDisplayData(monthSelect.value);
+});
 </script>
 </body>
 </html>
