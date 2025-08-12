@@ -112,33 +112,6 @@ async function fetchLastModifiedTimestamp() {
   } catch { return null; }
 }
 
-function renderMergedRow(rowData) {
-  const tr = document.createElement("tr");
-  let i = 0;
-  while (i < rowData.length) {
-    const cellText = rowData[i] ? rowData[i].trim() : "";
-    if (!cellText) {
-      const td = document.createElement("th");
-      td.textContent = "";
-      tr.appendChild(td);
-      i++;
-      continue;
-    }
-    let colspan = 1;
-    while (i + colspan < rowData.length && rowData[i + colspan] && rowData[i + colspan].trim() === cellText) {
-      colspan++;
-    }
-    const th = document.createElement("th");
-    th.textContent = cellText;
-    th.colSpan = colspan;
-    th.style.textAlign = "center";
-    th.style.verticalAlign = "middle";
-    tr.appendChild(th);
-    i += colspan;
-  }
-  table.appendChild(tr);
-}
-
 function displayTable(data) {
   table.innerHTML = "";
   if (!Array.isArray(data) || !data.length) {
@@ -146,12 +119,34 @@ function displayTable(data) {
     return;
   }
 
-  // First 3 rows with merge logic
-  for (let r = 0; r < 3 && r < data.length; r++) {
-    renderMergedRow(data[r]);
-  }
+  // Row 1: Water Meter Reading (MLD) colspan=4, Litters colspan=6
+  let tr1 = document.createElement("tr");
+  tr1.innerHTML = `
+    <th colspan="4">Water Meter Reading (MLD)</th>
+    <th colspan="6">Water Meter Reading (Litters)</th>
+  `;
+  table.appendChild(tr1);
 
-  // Remaining rows normal
+  // Row 2: CWSS-138 / CWSS-238 groups
+  let tr2 = document.createElement("tr");
+  tr2.innerHTML = `
+    <th colspan="3">CWSS-138</th>
+    <th>CWSS-238</th>
+    <th colspan="4">CWSS-138</th>
+    <th>CWSS-238</th>
+  `;
+  table.appendChild(tr2);
+
+  // Row 3: Direct from data[2]
+  let tr3 = document.createElement("tr");
+  data[2].forEach(h => {
+    let th = document.createElement("th");
+    th.textContent = h;
+    tr3.appendChild(th);
+  });
+  table.appendChild(tr3);
+
+  // Data rows starting from row 4
   data.slice(3).forEach((row, idx) => {
     const tr = document.createElement("tr");
     if (row[0] && /total/i.test(row[0])) tr.className = "total-row";
