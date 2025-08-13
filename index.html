@@ -12,15 +12,20 @@
     background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
     color: #0d47a1;
     overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
-  .water-header {
+
+  /* HEADER */
+  header.water-header {
     position: relative;
     overflow: hidden;
-    padding: 20px 10px 60px 10px;
+    padding: 15px 10px 50px 10px;
     background: linear-gradient(135deg, #0288d1, #26c6da);
     color: white;
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
@@ -40,54 +45,105 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-  .main-content { max-width: 1200px; margin: auto; padding: 20px; }
+
+  /* MAIN CONTENT */
+  main.main-content {
+    flex: 1;
+    max-width: 1200px;
+    margin: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .selector-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
   select {
-    padding: 10px; font-size: 1rem; border: 1px solid #b3e5fc;
-    border-radius: 8px; background: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 15px;
-  }
-  #lastUpdated { text-align: center; color: #01579b; font-size: 0.9rem; margin-bottom: 15px; }
-  .container {
-    overflow-x: auto; background: rgba(255,255,255,0.95);
-    border-radius: 12px; box-shadow: 0 8px 20px rgba(0,150,255,0.15);
+    padding: 8px 12px;
+    font-size: 1rem;
     border: 1px solid #b3e5fc;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
   }
+
+  #lastUpdated {
+    text-align: center;
+    color: #01579b;
+    font-size: 0.9rem;
+  }
+
+  .container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,150,255,0.15);
+    border: 1px solid #b3e5fc;
+    padding: 0.5rem;
+  }
+
   table {
-    width: 100%; border-collapse: separate; border-spacing: 0;
-    font-size: 13px; transition: transform 0.3s ease;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    transform-origin: top center;
   }
   th, td {
-    padding: 8px; text-align: center; border: 1px solid #e0f2f1;
+    padding: 6px;
+    text-align: center;
+    border: 1px solid #e0f2f1;
   }
   th {
     background: linear-gradient(135deg, #0288d1, #26c6da);
-    color: white; font-weight: 600; position: sticky; top: 0; z-index: 2;
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
   .row-even { background-color: rgba(224,247,250,0.5); }
   .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
   .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
 
-  /* Mobile scaling adjustments */
+  /* FOOTER */
+  footer {
+    background: #01579b;
+    color: white;
+    text-align: center;
+    padding: 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  /* MOBILE */
   @media (max-width: 768px) {
-    body { overflow: hidden; }
-    table { font-size: 14px; }
-    select { font-size: 1.1rem; }
-    .water-header { font-size: 1.2rem; padding: 15px 5px 50px 5px; }
+    table { font-size: 12px; }
+    select { font-size: 1rem; }
+    .container { padding: 0; }
   }
 </style>
 </head>
 <body>
 
-<h2 class="water-header">
+<header class="water-header">
   Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025
   <div class="wave" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%23b3e5fc\'/%3E%3C/svg%3E');"></div>
   <div class="wave wave2" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%230288d1\'/%3E%3C/svg%3E');"></div>
   <div class="wave wave3" style="background: url('data:image/svg+xml,%3Csvg width=\'1200\' height=\'50\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 30 Q 150 10 300 30 T 600 30 T 900 30 T 1200 30 V50 H0 Z\' fill=\'%2301569b\'/%3E%3C/svg%3E');"></div>
-</h2>
+</header>
 
-<div class="main-content">
-  <div style="text-align:center;">
-    <label for="monthSelect">Select Month: </label>
+<main class="main-content">
+  <div class="selector-container">
+    <label for="monthSelect">Select Month:</label>
     <select id="monthSelect">
       <option value="Average">2025 Average</option>
       <option value="Jul">July</option>
@@ -104,34 +160,26 @@
   <div class="container">
     <table id="dataTable"></table>
   </div>
-</div>
+</main>
 
-  <script>
-    // This is the URL for the Google Apps Script Web App you provided
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
+<footer>
+  © 2025 Punjai Thalavaipalyam Panjayath. All rights reserved.
+</footer>
 
+<script>
+const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
 const GID_MAP = {
-  "Average": "676595147",
-  "Jul": "2038204618",
-  "Aug": "812809410",
-  "Sep": "555648873",
-  "Oct": "521072477",
-  "Nov": "1962131756",
-  "Dec": "397538262"
+  "Average": "676595147", "Jul": "2038204618", "Aug": "812809410",
+  "Sep": "555648873", "Oct": "521072477", "Nov": "1962131756", "Dec": "397538262"
 };
-
 const monthSelect = document.getElementById("monthSelect");
 const table = document.getElementById("dataTable");
 const lastUpdatedDiv = document.getElementById("lastUpdated");
 
 function updateLastUpdatedText(timestamp) {
-  if (!timestamp) {
-    lastUpdatedDiv.textContent = "Last updated: Unknown";
-    return;
-  }
+  if (!timestamp) { lastUpdatedDiv.textContent = "Last updated: Unknown"; return; }
   const date = new Date(timestamp);
-  const formatted = date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
-  lastUpdatedDiv.textContent = `Last updated: ${formatted}`;
+  lastUpdatedDiv.textContent = `Last updated: ${date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}`;
 }
 
 async function fetchLastModifiedTimestamp() {
@@ -140,28 +188,22 @@ async function fetchLastModifiedTimestamp() {
     if (!res.ok) return null;
     const json = await res.json();
     return json.lastModified;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 async function fetchAndDisplayData(month) {
   table.innerHTML = "<tr><td colspan='100%' style='text-align:center;'>Loading...</td></tr>";
-  const sheetLastModified = await fetchLastModifiedTimestamp();
-  updateLastUpdatedText(sheetLastModified);
-
+  updateLastUpdatedText(await fetchLastModifiedTimestamp());
   const gid = GID_MAP[month];
   const res = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?gid=${gid}`);
-  if (!res.ok) {
-    table.innerHTML = "<tr><td>Error loading data</td></tr>";
-    return;
-  }
+  if (!res.ok) { table.innerHTML = "<tr><td>Error loading data</td></tr>"; return; }
   const data = await res.json();
   displayTable(data);
   scaleTableForMobile();
 }
 
 function displayTable(data) {
+  while (data.every(row => row[0] === "")) data.forEach(row => row.shift());
   table.innerHTML = "";
   const headerRowsCount = 3;
   const thead = document.createElement("thead");
@@ -173,21 +215,15 @@ function displayTable(data) {
       if (skipMap[r][c]) continue;
       const cellValue = data[r][c] || "";
       if (!cellValue) continue;
-
       let rowspan = 1, colspan = 1;
       for (let rr = r + 1; rr < headerRowsCount; rr++) {
-        if (data[rr][c] === "" || data[rr][c] === cellValue) {
-          rowspan++;
-          skipMap[rr][c] = true;
-        } else break;
+        if (data[rr][c] === "" || data[rr][c] === cellValue) { rowspan++; skipMap[rr][c] = true; }
+        else break;
       }
       for (let cc = c + 1; cc < data[r].length; cc++) {
-        if (data[r][cc] === "" || data[r][cc] === cellValue) {
-          colspan++;
-          skipMap[r][cc] = true;
-        } else break;
+        if (data[r][cc] === "" || data[r][cc] === cellValue) { colspan++; skipMap[r][cc] = true; }
+        else break;
       }
-
       const th = document.createElement("th");
       th.textContent = cellValue;
       if (rowspan > 1) th.rowSpan = rowspan;
@@ -213,28 +249,20 @@ function displayTable(data) {
 }
 
 function scaleTableForMobile() {
+  const container = document.querySelector(".container");
+  const tableElement = document.querySelector("table");
   if (window.innerWidth <= 768) {
-    const container = document.querySelector(".container");
-    const tableElement = document.querySelector("table");
-    tableElement.style.transformOrigin = "top center";
     const scaleX = container.clientWidth / tableElement.scrollWidth;
-    const scaleY = (window.innerHeight - container.getBoundingClientRect().top - 20) / tableElement.scrollHeight;
-    const scale = Math.min(scaleX, scaleY, 1);
-    tableElement.style.transform = `scale(${scale})`;
+    const scaleY = (window.innerHeight - container.getBoundingClientRect().top - 60) / tableElement.scrollHeight;
+    tableElement.style.transform = `scale(${Math.min(scaleX, scaleY, 1)})`;
   } else {
-    document.querySelector("table").style.transform = "scale(1)";
+    tableElement.style.transform = "scale(1)";
   }
 }
 
-monthSelect.addEventListener("change", () => {
-  fetchAndDisplayData(monthSelect.value);
-});
-
+monthSelect.addEventListener("change", () => fetchAndDisplayData(monthSelect.value));
 window.addEventListener("resize", scaleTableForMobile);
-
-document.addEventListener("DOMContentLoaded", () => {
-  fetchAndDisplayData(monthSelect.value);
-});
+document.addEventListener("DOMContentLoaded", () => fetchAndDisplayData(monthSelect.value));
 </script>
 </body>
 </html>
