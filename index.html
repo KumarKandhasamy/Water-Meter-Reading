@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -11,15 +11,16 @@
     font-family: 'Inter', sans-serif;
     background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
     color: #0d47a1;
+    overflow-x: hidden;
   }
   .water-header {
     position: relative;
     overflow: hidden;
-    padding: 15px 10px 50px 10px;
+    padding: 20px 10px 60px 10px;
     background: linear-gradient(135deg, #0288d1, #26c6da);
     color: white;
     font-weight: 700;
-    font-size: clamp(1rem, 4vw, 1.5rem);
+    font-size: 1.5rem;
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
@@ -39,51 +40,39 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-  .main-content { max-width: 1200px; margin: auto; padding: 10px; }
+  .main-content { max-width: 1200px; margin: auto; padding: 20px; }
   select {
-    padding: 8px; font-size: 1rem; border: 1px solid #b3e5fc;
+    padding: 10px; font-size: 1rem; border: 1px solid #b3e5fc;
     border-radius: 8px; background: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 15px;
   }
-  #lastUpdated { text-align: center; color: #01579b; font-size: 0.85rem; margin-bottom: 10px; }
+  #lastUpdated { text-align: center; color: #01579b; font-size: 0.9rem; margin-bottom: 15px; }
   .container {
-    overflow-x: auto;
-    background: rgba(255,255,255,0.95);
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,150,255,0.15);
+    overflow-x: auto; background: rgba(255,255,255,0.95);
+    border-radius: 12px; box-shadow: 0 8px 20px rgba(0,150,255,0.15);
     border: 1px solid #b3e5fc;
-    -webkit-overflow-scrolling: touch;
   }
   table {
-    width: 100%;
-    min-width: 700px; /* Keeps structure on mobile */
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: clamp(10px, 2.5vw, 13px);
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    font-size: 13px; transition: transform 0.3s ease;
   }
   th, td {
-    padding: clamp(4px, 1vw, 8px);
-    text-align: center;
-    border: 1px solid #e0f2f1;
-    word-break: keep-all;
+    padding: 8px; text-align: center; border: 1px solid #e0f2f1;
   }
   th {
     background: linear-gradient(135deg, #0288d1, #26c6da);
-    color: white;
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 2;
+    color: white; font-weight: 600; position: sticky; top: 0; z-index: 2;
   }
   .row-even { background-color: rgba(224,247,250,0.5); }
   .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
   .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
 
-  /* Mobile optimizations */
-  @media (max-width: 600px) {
-    .main-content { padding: 5px; }
-    th, td { padding: 4px; }
-    table { min-width: 100%; }
+  /* Mobile scaling adjustments */
+  @media (max-width: 768px) {
+    body { overflow: hidden; }
+    table { font-size: 14px; }
+    select { font-size: 1.1rem; }
+    .water-header { font-size: 1.2rem; padding: 15px 5px 50px 5px; }
   }
 </style>
 </head>
@@ -117,8 +106,9 @@
   </div>
 </div>
 
-<script>
-const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
+  <script>
+    // This is the URL for the Google Apps Script Web App you provided
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxttncBaDzW83nysVTpt1YHWGUoHefuUELfuoNZ-W-4vQWqhcHQN7LaoAMBBfqwV9s/exec";
 
 const GID_MAP = {
   "Average": "676595147",
@@ -168,18 +158,13 @@ async function fetchAndDisplayData(month) {
   }
   const data = await res.json();
   displayTable(data);
+  scaleTableForMobile();
 }
 
 function displayTable(data) {
-  // Remove empty first columns
-  while (data.every(row => row[0] === "")) {
-    data.forEach(row => row.shift());
-  }
-
   table.innerHTML = "";
   const headerRowsCount = 3;
   const thead = document.createElement("thead");
-
   let skipMap = Array(headerRowsCount).fill(0).map(() => []);
 
   for (let r = 0; r < headerRowsCount; r++) {
@@ -190,16 +175,12 @@ function displayTable(data) {
       if (!cellValue) continue;
 
       let rowspan = 1, colspan = 1;
-
-      // Rowspan
       for (let rr = r + 1; rr < headerRowsCount; rr++) {
         if (data[rr][c] === "" || data[rr][c] === cellValue) {
           rowspan++;
           skipMap[rr][c] = true;
         } else break;
       }
-
-      // Colspan
       for (let cc = c + 1; cc < data[r].length; cc++) {
         if (data[r][cc] === "" || data[r][cc] === cellValue) {
           colspan++;
@@ -231,9 +212,25 @@ function displayTable(data) {
   table.appendChild(tbody);
 }
 
+function scaleTableForMobile() {
+  if (window.innerWidth <= 768) {
+    const container = document.querySelector(".container");
+    const tableElement = document.querySelector("table");
+    tableElement.style.transformOrigin = "top center";
+    const scaleX = container.clientWidth / tableElement.scrollWidth;
+    const scaleY = (window.innerHeight - container.getBoundingClientRect().top - 20) / tableElement.scrollHeight;
+    const scale = Math.min(scaleX, scaleY, 1);
+    tableElement.style.transform = `scale(${scale})`;
+  } else {
+    document.querySelector("table").style.transform = "scale(1)";
+  }
+}
+
 monthSelect.addEventListener("change", () => {
   fetchAndDisplayData(monthSelect.value);
 });
+
+window.addEventListener("resize", scaleTableForMobile);
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchAndDisplayData(monthSelect.value);
