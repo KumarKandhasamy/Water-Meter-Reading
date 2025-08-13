@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
 <title>Punjai Thalavaipalyam Panjayath - CWSS Water Meter Readings 2025</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -15,11 +15,11 @@
   .water-header {
     position: relative;
     overflow: hidden;
-    padding: 20px 10px 60px 10px;
+    padding: 15px 10px 50px 10px;
     background: linear-gradient(135deg, #0288d1, #26c6da);
     color: white;
     font-weight: 700;
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 4vw, 1.5rem);
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
@@ -39,32 +39,52 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-  .main-content { max-width: 1200px; margin: auto; padding: 20px; }
+  .main-content { max-width: 1200px; margin: auto; padding: 10px; }
   select {
-    padding: 10px; font-size: 1rem; border: 1px solid #b3e5fc;
+    padding: 8px; font-size: 1rem; border: 1px solid #b3e5fc;
     border-radius: 8px; background: white;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 15px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 10px;
   }
-  #lastUpdated { text-align: center; color: #01579b; font-size: 0.9rem; margin-bottom: 15px; }
+  #lastUpdated { text-align: center; color: #01579b; font-size: 0.85rem; margin-bottom: 10px; }
   .container {
-    overflow-x: auto; background: rgba(255,255,255,0.95);
-    border-radius: 12px; box-shadow: 0 8px 20px rgba(0,150,255,0.15);
+    overflow-x: auto;
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,150,255,0.15);
     border: 1px solid #b3e5fc;
+    -webkit-overflow-scrolling: touch;
   }
   table {
-    width: 100%; border-collapse: separate; border-spacing: 0;
-    font-size: 13px;
+    width: 100%;
+    min-width: 700px; /* Keeps structure on mobile */
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: clamp(10px, 2.5vw, 13px);
   }
   th, td {
-    padding: 8px; text-align: center; border: 1px solid #e0f2f1;
+    padding: clamp(4px, 1vw, 8px);
+    text-align: center;
+    border: 1px solid #e0f2f1;
+    word-break: keep-all;
   }
   th {
     background: linear-gradient(135deg, #0288d1, #26c6da);
-    color: white; font-weight: 600; position: sticky; top: 0; z-index: 2;
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
   .row-even { background-color: rgba(224,247,250,0.5); }
   .total-row { background: linear-gradient(135deg, #b2ff59, #76ff03); color: #1b5e20; font-weight: bold; }
   .average-row { background: linear-gradient(135deg, #fff176, #ffd54f); color: #e65100; font-weight: bold; }
+
+  /* Mobile optimizations */
+  @media (max-width: 600px) {
+    .main-content { padding: 5px; }
+    th, td { padding: 4px; }
+    table { min-width: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -151,7 +171,7 @@ async function fetchAndDisplayData(month) {
 }
 
 function displayTable(data) {
-  // ✅ Remove empty first columns (fix for extra gap before S.No)
+  // Remove empty first columns
   while (data.every(row => row[0] === "")) {
     data.forEach(row => row.shift());
   }
@@ -171,7 +191,7 @@ function displayTable(data) {
 
       let rowspan = 1, colspan = 1;
 
-      // Calculate rowspan
+      // Rowspan
       for (let rr = r + 1; rr < headerRowsCount; rr++) {
         if (data[rr][c] === "" || data[rr][c] === cellValue) {
           rowspan++;
@@ -179,7 +199,7 @@ function displayTable(data) {
         } else break;
       }
 
-      // Calculate colspan
+      // Colspan
       for (let cc = c + 1; cc < data[r].length; cc++) {
         if (data[r][cc] === "" || data[r][cc] === cellValue) {
           colspan++;
